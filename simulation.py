@@ -7,11 +7,11 @@ GRID_HEIGHT = 50
 STATE_FILE = "state.json"
 
 def create_grid(width, height, randomize=False):
-    """Creates a 2D grid, optionally filled with random 0s, 1s, 2s, 3s, and 4s."""
+    """Creates a 2D grid, optionally filled with random 0s, 1s, 2s, 3s, 4s, 5s, and 6s."""
     grid = []
     for _ in range(height):
         if randomize:
-            row = [random.choice([0, 1, 2, 3, 4]) for _ in range(width)]
+            row = [random.choice([0, 1, 2, 3, 4, 5, 6]) for _ in range(width)]
         else:
             row = [0 for _ in range(width)]
         grid.append(row)
@@ -50,6 +50,19 @@ def load_state():
                                 grid[y][x] = 3
                             elif rand_val < 0.10: # 5% chance to become Lizard
                                 grid[y][x] = 4
+
+                # Check if it's a legacy grid (missing states 5 or 6) and seed them
+                has_five = any(5 in row for row in grid)
+                has_six = any(6 in row for row in grid)
+                if not (has_five and has_six):
+                    print("Legacy grid detected. Seeding State 5 (Black Hole) and State 6 (Void).")
+                    for y in range(len(grid)):
+                        for x in range(len(grid[y])):
+                            rand_val = random.random()
+                            if rand_val < 0.02: # 2% chance to become Black Hole
+                                grid[y][x] = 5
+                            elif rand_val < 0.07: # 5% chance to become Void
+                                grid[y][x] = 6
                 return grid
         except (json.JSONDecodeError, IOError) as e:
             print(f"Error loading state: {e}. Creating a new random grid.")
@@ -71,7 +84,7 @@ def save_state(grid):
 
 def print_grid(grid):
     """Prints the grid to the console."""
-    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L"}
+    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V"}
     for row in grid:
         print(" ".join(chars.get(cell, "?") for cell in row))
     print()
@@ -89,11 +102,13 @@ def count_predator_neighbors(grid, x, y, state):
     # Actually, standard RPSLK ordering where 0 beats 2,3; 1 beats 0,3; etc. can be messy.
     # Let's map explicitly.
     predators_of = {
-        0: [1, 3],
-        1: [2, 4],
-        2: [0, 3],
-        3: [1, 4],
-        4: [0, 2]
+        0: [1, 3, 5],
+        1: [2, 4, 5],
+        2: [0, 3, 5],
+        3: [1, 4, 5],
+        4: [0, 2, 5],
+        5: [],
+        6: []
     }
 
     height = len(grid)
@@ -128,15 +143,45 @@ def update_grid(grid):
     for y in range(height):
         for x in range(width):
             current_state = grid[y][x]
-            total_predators, predator_counts = count_predator_neighbors(grid, x, y, current_state)
 
-            if total_predators >= 3:
-                # Eaten by the most common predator. If tied, choose randomly among the max.
-                max_count = max(predator_counts.values())
-                most_common = [p for p, c in predator_counts.items() if c == max_count]
-                new_grid[y][x] = random.choice(most_common)
+            if current_state == 6:
+                # Rule 1 (Void): Becomes RPSLK cell if surrounded by 3 or more of the same RPSLK cell type
+                neighbor_counts = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
+                for i in range(-1, 2):
+                    for j in range(-1, 2):
+                        if i == 0 and j == 0:
+                            continue
+                        neighbor_y = (y + i) % height
+                        neighbor_x = (x + j) % width
+                        n_state = grid[neighbor_y][neighbor_x]
+                        if n_state in neighbor_counts:
+                            neighbor_counts[n_state] += 1
+
+                new_state = current_state
+                for st, count in neighbor_counts.items():
+                    if count >= 3:
+                        new_state = st
+                        break
+                new_grid[y][x] = new_state
+
+            elif current_state == 5:
+                # Rule 2 (Black Hole): Decays into Void with some probability
+                if random.random() < 0.10: # 10% chance
+                    new_grid[y][x] = 6
+                else:
+                    new_grid[y][x] = 5
+
             else:
-                new_grid[y][x] = current_state
+                # Rule 3 (Normal RPSLK/Black Hole interactions)
+                total_predators, predator_counts = count_predator_neighbors(grid, x, y, current_state)
+
+                if total_predators >= 3:
+                    # Eaten by the most common predator. If tied, choose randomly among the max.
+                    max_count = max(predator_counts.values())
+                    most_common = [p for p, c in predator_counts.items() if c == max_count]
+                    new_grid[y][x] = random.choice(most_common)
+                else:
+                    new_grid[y][x] = current_state
 
     return new_grid
 
@@ -158,11 +203,13 @@ def generate_html(grid):
             .state-2 { background-color: #3498db; } /* Scissors: Blue */
             .state-3 { background-color: #9b59b6; } /* Spock: Purple */
             .state-4 { background-color: #f1c40f; } /* Lizard: Yellow */
+            .state-5 { background-color: #000; } /* Black Hole: Black */
+            .state-6 { background-color: #222; } /* Void: Dark Gray */
         </style>
     </head>
     <body>
         <div>
-            <h2>Rock-Paper-Scissors-Spock-Lizard Cellular Automaton</h2>
+            <h2>7-State Cellular Automaton (RPSLK + Black Hole & Void)</h2>
             <div class="grid">
     """ % (len(grid[0]) if grid else 0, len(grid))
 
@@ -172,7 +219,7 @@ def generate_html(grid):
 
     html_content += """
             </div>
-            <p>Red: Rock | Green: Paper | Blue: Scissors</p>
+            <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Dark Gray: Void</p>
         </div>
     </body>
     </html>
