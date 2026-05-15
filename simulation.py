@@ -2,16 +2,16 @@ import json
 import random
 import os
 
-GRID_WIDTH = 50
-GRID_HEIGHT = 50
+GRID_WIDTH = 100
+GRID_HEIGHT = 100
 STATE_FILE = "state.json"
 
 def create_grid(width, height, randomize=False):
-    """Creates a 2D grid, optionally filled with random 0s, 1s, 2s, 3s, 4s, 5s, and 6s."""
+    """Creates a 2D grid, optionally filled with random 0s, 1s, 2s, 3s, 4s, 5s, 6s, and 7s."""
     grid = []
     for _ in range(height):
         if randomize:
-            row = [random.choice([0, 1, 2, 3, 4, 5, 6]) for _ in range(width)]
+            row = [random.choice([0, 1, 2, 3, 4, 5, 6, 7]) for _ in range(width)]
         else:
             row = [0 for _ in range(width)]
         grid.append(row)
@@ -71,7 +71,7 @@ def save_state(grid):
 
 def print_grid(grid):
     """Prints the grid to the console."""
-    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V"}
+    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*"}
     for row in grid:
         print(" ".join(chars.get(cell, "?") for cell in row))
     print()
@@ -133,13 +133,34 @@ def update_grid(grid):
             current_state = grid[y][x]
 
             if current_state == 5:
-                new_grid[y][x] = 6
+                if random.random() < 0.01:
+                    new_grid[y][x] = 7 # Supernova
+                else:
+                    new_grid[y][x] = 6
                 continue
             elif current_state == 6:
                 if random.random() < 0.05:
                     new_grid[y][x] = random.choice([0, 1, 2, 3, 4])
                 else:
                     new_grid[y][x] = 6
+                continue
+            elif current_state == 7:
+                new_grid[y][x] = 6
+                continue
+
+            # Check for adjacent state 7 (Supernova)
+            has_state_7_neighbor = False
+            for i in range(-1, 2):
+                for j in range(-1, 2):
+                    if i == 0 and j == 0: continue
+                    if grid[(y + i) % height][(x + j) % width] == 7:
+                        has_state_7_neighbor = True
+                        break
+                if has_state_7_neighbor:
+                    break
+
+            if has_state_7_neighbor:
+                new_grid[y][x] = 6 # Destroyed by supernova and turns into void
                 continue
 
             # Check for adjacent state 5
@@ -170,41 +191,52 @@ def update_grid(grid):
     return new_grid
 
 def generate_html(grid):
-    """Generates an HTML file to visualize the grid."""
-    # Scale down cell size for larger grid
-    html_content = """
+    """Generates an HTML file to visualize the grid using a canvas."""
+    width = len(grid[0]) if grid else 0
+    height = len(grid)
+
+    html_content = f"""
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
         <title>AI Collective: RPS-Spock-Lizard Simulation</title>
         <style>
-            body { background-color: #111; color: #eee; font-family: monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-            .grid { display: grid; grid-template-columns: repeat(%d, 10px); grid-template-rows: repeat(%d, 10px); gap: 1px; background-color: #333; padding: 1px; }
-            .cell { width: 10px; height: 10px; }
-            .state-0 { background-color: #e74c3c; } /* Rock: Red */
-            .state-1 { background-color: #2ecc71; } /* Paper: Green */
-            .state-2 { background-color: #3498db; } /* Scissors: Blue */
-            .state-3 { background-color: #9b59b6; } /* Spock: Purple */
-            .state-4 { background-color: #f1c40f; } /* Lizard: Yellow */
-            .state-5 { background-color: #000000; } /* Black Hole: Black */
-            .state-6 { background-color: #7f8c8d; } /* Void: Gray */
+            body {{ background-color: #111; color: #eee; font-family: monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; flex-direction: column; }}
+            canvas {{ background-color: #333; }}
         </style>
     </head>
     <body>
-        <div>
-            <h2>Rock-Paper-Scissors-Spock-Lizard Cellular Automaton with Black Hole and Void</h2>
-            <div class="grid">
-    """ % (len(grid[0]) if grid else 0, len(grid))
+        <h2>Rock-Paper-Scissors-Spock-Lizard with Black Hole, Void, and Supernova</h2>
+        <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
+        <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova</p>
 
-    for row in grid:
-        for cell in row:
-            html_content += f'<div class="cell state-{cell}" title="State {cell}"></div>\n'
+        <script>
+            const canvas = document.getElementById('simCanvas');
+            const ctx = canvas.getContext('2d');
+            const cellSize = 5;
 
-    html_content += """
-            </div>
-            <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void</p>
-        </div>
+            const colors = {{
+                0: '#e74c3c', // Rock
+                1: '#2ecc71', // Paper
+                2: '#3498db', // Scissors
+                3: '#9b59b6', // Spock
+                4: '#f1c40f', // Lizard
+                5: '#000000', // Black Hole
+                6: '#7f8c8d', // Void
+                7: '#ffffff'  // Supernova
+            }};
+
+            const grid = {json.dumps(grid)};
+
+            for (let y = 0; y < grid.length; y++) {{
+                for (let x = 0; x < grid[y].length; x++) {{
+                    const state = grid[y][x];
+                    ctx.fillStyle = colors[state] || '#333';
+                    ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                }}
+            }}
+        </script>
     </body>
     </html>
     """
