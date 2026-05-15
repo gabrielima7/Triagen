@@ -7,11 +7,11 @@ GRID_HEIGHT = 50
 STATE_FILE = "state.json"
 
 def create_grid(width, height, randomize=False):
-    """Creates a 2D grid, optionally filled with random 0s, 1s, 2s, 3s, and 4s."""
+    """Creates a 2D grid, optionally filled with random 0s, 1s, 2s, 3s, 4s, 5s, and 6s."""
     grid = []
     for _ in range(height):
         if randomize:
-            row = [random.choice([0, 1, 2, 3, 4]) for _ in range(width)]
+            row = [random.choice([0, 1, 2, 3, 4, 5, 6]) for _ in range(width)]
         else:
             row = [0 for _ in range(width)]
         grid.append(row)
@@ -71,7 +71,7 @@ def save_state(grid):
 
 def print_grid(grid):
     """Prints the grid to the console."""
-    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L"}
+    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V"}
     for row in grid:
         print(" ".join(chars.get(cell, "?") for cell in row))
     print()
@@ -99,7 +99,10 @@ def count_predator_neighbors(grid, x, y, state):
     height = len(grid)
     width = len(grid[0]) if height > 0 else 0
     count = 0
-    predator_states = predators_of[state]
+    if state in predators_of:
+        predator_states = predators_of[state]
+    else:
+        predator_states = []
     predator_counts = {p: 0 for p in predator_states}
 
     # Check the 8 surrounding cells
@@ -128,6 +131,32 @@ def update_grid(grid):
     for y in range(height):
         for x in range(width):
             current_state = grid[y][x]
+
+            if current_state == 5:
+                new_grid[y][x] = 6
+                continue
+            elif current_state == 6:
+                if random.random() < 0.05:
+                    new_grid[y][x] = random.choice([0, 1, 2, 3, 4])
+                else:
+                    new_grid[y][x] = 6
+                continue
+
+            # Check for adjacent state 5
+            has_state_5_neighbor = False
+            for i in range(-1, 2):
+                for j in range(-1, 2):
+                    if i == 0 and j == 0: continue
+                    if grid[(y + i) % height][(x + j) % width] == 5:
+                        has_state_5_neighbor = True
+                        break
+                if has_state_5_neighbor:
+                    break
+
+            if has_state_5_neighbor:
+                new_grid[y][x] = 5
+                continue
+
             total_predators, predator_counts = count_predator_neighbors(grid, x, y, current_state)
 
             if total_predators >= 3:
@@ -158,11 +187,13 @@ def generate_html(grid):
             .state-2 { background-color: #3498db; } /* Scissors: Blue */
             .state-3 { background-color: #9b59b6; } /* Spock: Purple */
             .state-4 { background-color: #f1c40f; } /* Lizard: Yellow */
+            .state-5 { background-color: #000000; } /* Black Hole: Black */
+            .state-6 { background-color: #7f8c8d; } /* Void: Gray */
         </style>
     </head>
     <body>
         <div>
-            <h2>Rock-Paper-Scissors-Spock-Lizard Cellular Automaton</h2>
+            <h2>Rock-Paper-Scissors-Spock-Lizard Cellular Automaton with Black Hole and Void</h2>
             <div class="grid">
     """ % (len(grid[0]) if grid else 0, len(grid))
 
@@ -172,7 +203,7 @@ def generate_html(grid):
 
     html_content += """
             </div>
-            <p>Red: Rock | Green: Paper | Blue: Scissors</p>
+            <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void</p>
         </div>
     </body>
     </html>
