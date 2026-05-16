@@ -140,15 +140,12 @@ def update_grid(grid):
                 continue
             elif current_state == 6:
                 # Check for adjacent state 8 (Pulsar)
-                has_state_8_neighbor = False
-                for i in range(-1, 2):
-                    for j in range(-1, 2):
-                        if i == 0 and j == 0: continue
-                        if grid[(y + i) % height][(x + j) % width] == 8:
-                            has_state_8_neighbor = True
-                            break
-                    if has_state_8_neighbor:
-                        break
+                has_state_8_neighbor = any(
+                    grid[(y + i) % height][(x + j) % width] == 8
+                    for i in range(-1, 2)
+                    for j in range(-1, 2)
+                    if not (i == 0 and j == 0)
+                )
 
                 if has_state_8_neighbor:
                     new_grid[y][x] = random.choice([0, 1, 2, 3, 4])
@@ -219,6 +216,7 @@ def generate_html(grid):
     <html lang="en">
     <head>
         <meta charset="UTF-8">
+        <meta http-equiv="refresh" content="1">
         <title>AI Collective: RPS-Spock-Lizard Simulation</title>
         <style>
             body {{ background-color: #111; color: #eee; font-family: monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; flex-direction: column; }}
