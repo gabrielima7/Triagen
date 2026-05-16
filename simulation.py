@@ -7,11 +7,11 @@ GRID_HEIGHT = 100
 STATE_FILE = "state.json"
 
 def create_grid(width, height, randomize=False):
-    """Creates a 2D grid, optionally filled with random 0s, 1s, 2s, 3s, 4s, 5s, 6s, and 7s."""
+    """Creates a 2D grid, optionally filled with random 0s, 1s, 2s, 3s, 4s, 5s, 6s, 7s, and 8s."""
     grid = []
     for _ in range(height):
         if randomize:
-            row = [random.choice([0, 1, 2, 3, 4, 5, 6, 7]) for _ in range(width)]
+            row = [random.choice([0, 1, 2, 3, 4, 5, 6, 7, 8]) for _ in range(width)]
         else:
             row = [0 for _ in range(width)]
         grid.append(row)
@@ -71,7 +71,7 @@ def save_state(grid):
 
 def print_grid(grid):
     """Prints the grid to the console."""
-    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*"}
+    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@"}
     for row in grid:
         print(" ".join(chars.get(cell, "?") for cell in row))
     print()
@@ -139,13 +139,29 @@ def update_grid(grid):
                     new_grid[y][x] = 6
                 continue
             elif current_state == 6:
-                if random.random() < 0.05:
+                # Check for adjacent state 8 (Pulsar)
+                has_state_8_neighbor = any(
+                    grid[(y + i) % height][(x + j) % width] == 8
+                    for i in range(-1, 2)
+                    for j in range(-1, 2)
+                    if not (i == 0 and j == 0)
+                )
+
+                if has_state_8_neighbor:
+                    new_grid[y][x] = random.choice([0, 1, 2, 3, 4])
+                elif random.random() < 0.05:
                     new_grid[y][x] = random.choice([0, 1, 2, 3, 4])
                 else:
                     new_grid[y][x] = 6
                 continue
             elif current_state == 7:
-                new_grid[y][x] = 6
+                new_grid[y][x] = 8 # Supernova becomes Pulsar
+                continue
+            elif current_state == 8:
+                if random.random() < 0.10:
+                    new_grid[y][x] = 6 # Pulsar becomes Void
+                else:
+                    new_grid[y][x] = 8
                 continue
 
             # Check for adjacent state 7 (Supernova)
@@ -200,6 +216,7 @@ def generate_html(grid):
     <html lang="en">
     <head>
         <meta charset="UTF-8">
+        <meta http-equiv="refresh" content="1">
         <title>AI Collective: RPS-Spock-Lizard Simulation</title>
         <style>
             body {{ background-color: #111; color: #eee; font-family: monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; flex-direction: column; }}
@@ -207,9 +224,9 @@ def generate_html(grid):
         </style>
     </head>
     <body>
-        <h2>Rock-Paper-Scissors-Spock-Lizard with Black Hole, Void, and Supernova</h2>
+        <h2>Rock-Paper-Scissors-Spock-Lizard with Black Hole, Void, Supernova, and Pulsar</h2>
         <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
-        <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova</p>
+        <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar</p>
 
         <script>
             const canvas = document.getElementById('simCanvas');
@@ -224,7 +241,8 @@ def generate_html(grid):
                 4: '#f1c40f', // Lizard
                 5: '#000000', // Black Hole
                 6: '#7f8c8d', // Void
-                7: '#ffffff'  // Supernova
+                7: '#ffffff', // Supernova
+                8: '#00ffff'  // Pulsar
             }};
 
             const grid = {json.dumps(grid)};
