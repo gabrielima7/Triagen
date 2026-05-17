@@ -7,11 +7,11 @@ GRID_HEIGHT = 100
 STATE_FILE = "state.json"
 
 def create_grid(width, height, randomize=False):
-    """Creates a 2D grid, optionally filled with random 0s, 1s, 2s, 3s, 4s, 5s, 6s, 7s, and 8s."""
+    """Creates a 2D grid, optionally filled with random 0s, 1s, 2s, 3s, 4s, 5s, 6s, 7s, 8s, and 9s."""
     grid = []
     for _ in range(height):
         if randomize:
-            row = [random.choice([0, 1, 2, 3, 4, 5, 6, 7, 8]) for _ in range(width)]
+            row = [random.choice([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) for _ in range(width)]
         else:
             row = [0 for _ in range(width)]
         grid.append(row)
@@ -71,7 +71,7 @@ def save_state(grid):
 
 def print_grid(grid):
     """Prints the grid to the console."""
-    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@"}
+    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@", 9: "W"}
     for row in grid:
         print(" ".join(chars.get(cell, "?") for cell in row))
     print()
@@ -128,6 +128,18 @@ def update_grid(grid):
     width = len(grid[0]) if height > 0 else 0
     new_grid = create_grid(width, height)
 
+    # First, collect all states adjacent to any wormhole (State 9)
+    wormhole_horizons = []
+    for y in range(height):
+        for x in range(width):
+            if grid[y][x] == 9:
+                for i in range(-1, 2):
+                    for j in range(-1, 2):
+                        if i == 0 and j == 0: continue
+                        neighbor_state = grid[(y + i) % height][(x + j) % width]
+                        if neighbor_state in [0, 1, 2, 3, 4]:
+                            wormhole_horizons.append(neighbor_state)
+
     for y in range(height):
         for x in range(width):
             current_state = grid[y][x]
@@ -149,6 +161,8 @@ def update_grid(grid):
 
                 if has_state_8_neighbor:
                     new_grid[y][x] = random.choice([0, 1, 2, 3, 4])
+                elif random.random() < 0.001: # 0.1% chance to spontaneously form a Wormhole
+                    new_grid[y][x] = 9
                 elif random.random() < 0.05:
                     new_grid[y][x] = random.choice([0, 1, 2, 3, 4])
                 else:
@@ -162,6 +176,12 @@ def update_grid(grid):
                     new_grid[y][x] = 6 # Pulsar becomes Void
                 else:
                     new_grid[y][x] = 8
+                continue
+            elif current_state == 9:
+                if random.random() < 0.05:
+                    new_grid[y][x] = 6 # Wormhole decays to Void
+                else:
+                    new_grid[y][x] = 9
                 continue
 
             # Check for adjacent state 7 (Supernova)
@@ -194,6 +214,22 @@ def update_grid(grid):
                 new_grid[y][x] = 5
                 continue
 
+            # Check for adjacent state 9 (Wormhole) non-local interactions for RPSLK states
+            if current_state in [0, 1, 2, 3, 4] and wormhole_horizons:
+                has_state_9_neighbor = False
+                for i in range(-1, 2):
+                    for j in range(-1, 2):
+                        if i == 0 and j == 0: continue
+                        if grid[(y + i) % height][(x + j) % width] == 9:
+                            has_state_9_neighbor = True
+                            break
+                    if has_state_9_neighbor:
+                        break
+
+                if has_state_9_neighbor and random.random() < 0.10:
+                    new_grid[y][x] = random.choice(wormhole_horizons)
+                    continue
+
             total_predators, predator_counts = count_predator_neighbors(grid, x, y, current_state)
 
             if total_predators >= 3:
@@ -224,9 +260,9 @@ def generate_html(grid):
         </style>
     </head>
     <body>
-        <h2>Rock-Paper-Scissors-Spock-Lizard with Black Hole, Void, Supernova, and Pulsar</h2>
+        <h2>Rock-Paper-Scissors-Spock-Lizard with Black Hole, Void, Supernova, Pulsar, and Wormhole</h2>
         <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
-        <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar</p>
+        <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole</p>
 
         <script>
             const canvas = document.getElementById('simCanvas');
@@ -242,7 +278,8 @@ def generate_html(grid):
                 5: '#000000', // Black Hole
                 6: '#7f8c8d', // Void
                 7: '#ffffff', // Supernova
-                8: '#00ffff'  // Pulsar
+                8: '#00ffff', // Pulsar
+                9: '#ff00ff'  // Wormhole
             }};
 
             const grid = {json.dumps(grid)};
