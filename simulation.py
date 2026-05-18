@@ -80,14 +80,6 @@ def count_predator_neighbors(grid, x, y, state):
     """Counts the number of predator neighbors for a given cell in RPS-Spock-Lizard."""
     # 0: Rock, 1: Paper, 2: Scissors, 3: Spock, 4: Lizard
     # Predators of X: states that beat X.
-    # Rock (0) beaten by Paper (1) and Spock (3)
-    # Paper (1) beaten by Scissors (2) and Lizard (4)
-    # Scissors (2) beaten by Rock (0) and Spock (3)
-    # Spock (3) beaten by Paper (1) and Lizard (4)
-    # Lizard (4) beaten by Rock (0) and Scissors (2)
-    # General rule in standard index ordering where each beats the two preceding it cyclically:
-    # Actually, standard RPSLK ordering where 0 beats 2,3; 1 beats 0,3; etc. can be messy.
-    # Let's map explicitly.
     predators_of = {
         0: [1, 3],
         1: [2, 4],
@@ -123,122 +115,202 @@ def count_predator_neighbors(grid, x, y, state):
     return count, predator_counts
 
 def update_grid(grid):
-    """Applies Rock-Paper-Scissors-Spock-Lizard Cellular Automaton rules to generate the next state."""
+    """Applies RPSLK + Black Hole + Void + Supernova + Pulsar + Wormhole rules."""
     height = len(grid)
     width = len(grid[0]) if height > 0 else 0
     new_grid = create_grid(width, height)
 
-    # First, collect all states adjacent to any wormhole (State 9)
-    wormhole_horizons = []
+    # 1. PRE-COMPUTATION (O(N) search for Wormholes and Voids to avoid O(N^2) complexity inside the loop)
+    wormholes = []
+    voids = []
     for y in range(height):
         for x in range(width):
-            if grid[y][x] == 9:
-                for i in range(-1, 2):
-                    for j in range(-1, 2):
-                        if i == 0 and j == 0: continue
-                        neighbor_state = grid[(y + i) % height][(x + j) % width]
-                        if neighbor_state in [0, 1, 2, 3, 4]:
-                            wormhole_horizons.append(neighbor_state)
+            state = grid[y][x]
+            if state == 9:
+                wormholes.append((y, x))
+            elif state == 6:
+                voids.append((y, x))
 
+    # 2. COLLECT WORMHOLE HORIZONS (Normal states adjacent to any Wormhole)
+    wormhole_horizons = []
+    for wy, wx in wormholes:
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if i == 0 and j == 0: continue
+                ny, nx = (wy + i) % height, (wx + j) % width
+                neighbor_state = grid[ny][nx]
+                if neighbor_state in [0, 1, 2, 3, 4]:
+                    wormhole_horizons.append(neighbor_state)
+
+    # 3. PRE-DETERMINE WORMHOLE QUANTUM TELEPORTATION TARGETS (Resolves overwrite bug by applying targets in cell loop)
+    available_voids = list(voids)
+    teleportation_targets = {}
+    for wy, wx in wormholes:
+        if available_voids:
+            target_y, target_x = random.choice(available_voids)
+            available_voids.remove((target_y, target_x))
+            teleported_state = random.choice(wormhole_horizons) if wormhole_horizons else random.choice([0, 1, 2, 3, 4])
+            teleportation_targets[(target_y, target_x)] = teleported_state
+
+    # 4. MAIN CELLULAR AUTOMATON UPDATE PASS
     for y in range(height):
         for x in range(width):
+            # Check if this cell receives a quantum teleported state (priority over normal void processing)
+            if (y, x) in teleportation_targets:
+                new_grid[y][x] = teleportation_targets[(y, x)]
+                continue
+
             current_state = grid[y][x]
 
+            # --- STATE 5: BLACK HOLE ---
             if current_state == 5:
-                if random.random() < 0.01:
-                    new_grid[y][x] = 7 # Supernova
+                # Black Hole vs Wormhole: adjacent Wormholes destroy Black Holes completely
+                has_wormhole_neighbor = any(
+                    grid[(y + i) % height][(x + j) % width] == 9
+                    for i in range(-1, 2)
+                    for j in range(-1, 2)
+                    if not (i == 0 and j == 0)
+                )
+                if has_wormhole_neighbor:
+                    new_grid[y][x] = 6 # Destroyed by Wormhole and turns into Void
                 else:
-                    new_grid[y][x] = 6
+                    rand_val = random.random()
+                    if rand_val < 0.01:
+                        new_grid[y][x] = 7 # Supernova (1% chance)
+                    elif rand_val < 0.02:
+                        new_grid[y][x] = 9 # Wormhole (1% chance from Black Hole)
+                    else:
+                        new_grid[y][x] = 6 # Decays into Void (98% chance)
                 continue
+
+            # --- STATE 6: VOID ---
             elif current_state == 6:
-                # Check for adjacent state 8 (Pulsar)
-                has_state_8_neighbor = any(
+                # Check for Pulsar neighbor
+                has_pulsar_neighbor = any(
                     grid[(y + i) % height][(x + j) % width] == 8
                     for i in range(-1, 2)
                     for j in range(-1, 2)
                     if not (i == 0 and j == 0)
                 )
 
-                if has_state_8_neighbor:
+                # Check for Wormhole neighbor
+                has_wormhole_neighbor = any(
+                    grid[(y + i) % height][(x + j) % width] == 9
+                    for i in range(-1, 2)
+                    for j in range(-1, 2)
+                    if not (i == 0 and j == 0)
+                )
+
+                if has_pulsar_neighbor:
+                    # Pulsar violently colonizes adjacent Void
                     new_grid[y][x] = random.choice([0, 1, 2, 3, 4])
-                elif random.random() < 0.001: # 0.1% chance to spontaneously form a Wormhole
-                    new_grid[y][x] = 9
-                elif random.random() < 0.05:
-                    new_grid[y][x] = random.choice([0, 1, 2, 3, 4])
+                elif has_wormhole_neighbor:
+                    # Wormhole spit-out mechanics
+                    r = random.random()
+                    if r < 0.10:
+                        new_grid[y][x] = random.choice([0, 1, 2, 3, 4]) # Wormhole spits out normal life
+                    elif r < 0.11:
+                        new_grid[y][x] = 5 # Wormhole perturbation forms Black Hole (1% chance)
+                    else:
+                        new_grid[y][x] = 6
                 else:
-                    new_grid[y][x] = 6
+                    # Spontaneous transitions
+                    rand_val = random.random()
+                    if rand_val < 0.001:
+                        new_grid[y][x] = 9 # Spontaneous Wormhole (0.1% chance)
+                    elif rand_val < 0.05:
+                        new_grid[y][x] = random.choice([0, 1, 2, 3, 4]) # Spontaneous emergence
+                    else:
+                        new_grid[y][x] = 6
                 continue
+
+            # --- STATE 7: SUPERNOVA ---
             elif current_state == 7:
                 new_grid[y][x] = 8 # Supernova becomes Pulsar
                 continue
+
+            # --- STATE 8: PULSAR ---
             elif current_state == 8:
-                if random.random() < 0.10:
-                    new_grid[y][x] = 6 # Pulsar becomes Void
+                rand_val = random.random()
+                if rand_val < 0.05:
+                    new_grid[y][x] = 9 # Pulsar collapses into Wormhole (5% chance)
+                elif rand_val < 0.10:
+                    new_grid[y][x] = 6 # Pulsar fades to Void (5% chance)
                 else:
-                    new_grid[y][x] = 8
-                continue
-            elif current_state == 9:
-                if random.random() < 0.05:
-                    new_grid[y][x] = 6 # Wormhole decays to Void
-                else:
-                    new_grid[y][x] = 9
+                    new_grid[y][x] = 8 # Remains Pulsar
                 continue
 
-            # Check for adjacent state 7 (Supernova)
-            has_state_7_neighbor = False
+            # --- STATE 9: WORMHOLE ---
+            elif current_state == 9:
+                rand_val = random.random()
+                if rand_val < 0.05:
+                    new_grid[y][x] = 5 # Wormhole collapses into Black Hole (5% chance, closes cycle)
+                elif rand_val < 0.15:
+                    new_grid[y][x] = 6 # Wormhole decays into Void (10% chance)
+                else:
+                    new_grid[y][x] = 9 # Wormhole persists
+                continue
+
+            # --- NORMAL STATES 0-4: ROCK-PAPER-SCISSORS-SPOCK-LIZARD ---
+            # Check environmental hazards first
+            # 1. Supernova neighbor: completely destroys normal states
+            has_supernova_neighbor = False
             for i in range(-1, 2):
                 for j in range(-1, 2):
                     if i == 0 and j == 0: continue
                     if grid[(y + i) % height][(x + j) % width] == 7:
-                        has_state_7_neighbor = True
+                        has_supernova_neighbor = True
                         break
-                if has_state_7_neighbor:
+                if has_supernova_neighbor:
                     break
 
-            if has_state_7_neighbor:
-                new_grid[y][x] = 6 # Destroyed by supernova and turns into void
+            if has_supernova_neighbor:
+                new_grid[y][x] = 6 # Supernova incinerates cell to Void
                 continue
 
-            # Check for adjacent state 5
-            has_state_5_neighbor = False
+            # 2. Black Hole neighbor: consumes normal states
+            has_blackhole_neighbor = False
             for i in range(-1, 2):
                 for j in range(-1, 2):
                     if i == 0 and j == 0: continue
                     if grid[(y + i) % height][(x + j) % width] == 5:
-                        has_state_5_neighbor = True
+                        has_blackhole_neighbor = True
                         break
-                if has_state_5_neighbor:
+                if has_blackhole_neighbor:
                     break
 
-            if has_state_5_neighbor:
-                new_grid[y][x] = 5
+            if has_blackhole_neighbor:
+                new_grid[y][x] = 5 # Consumed by Black Hole
                 continue
 
-            # Check for adjacent state 9 (Wormhole) non-local interactions for RPSLK states
-            if current_state in [0, 1, 2, 3, 4] and wormhole_horizons:
-                has_state_9_neighbor = False
-                for i in range(-1, 2):
-                    for j in range(-1, 2):
-                        if i == 0 and j == 0: continue
-                        if grid[(y + i) % height][(x + j) % width] == 9:
-                            has_state_9_neighbor = True
-                            break
-                    if has_state_9_neighbor:
+            # 3. Wormhole neighbor: sucked in with a 20% chance
+            has_wormhole_neighbor = False
+            for i in range(-1, 2):
+                for j in range(-1, 2):
+                    if i == 0 and j == 0: continue
+                    if grid[(y + i) % height][(x + j) % width] == 9:
+                        has_wormhole_neighbor = True
                         break
+                if has_wormhole_neighbor:
+                    break
 
-                if has_state_9_neighbor and random.random() < 0.10:
-                    new_grid[y][x] = random.choice(wormhole_horizons)
-                    continue
+            if has_wormhole_neighbor and random.random() < 0.20:
+                new_grid[y][x] = 6 # Sucked into Void by Wormhole gravitational pull
+                continue
 
+            # 4. Standard RPSLK predators check
             total_predators, predator_counts = count_predator_neighbors(grid, x, y, current_state)
-
             if total_predators >= 3:
-                # Eaten by the most common predator. If tied, choose randomly among the max.
+                # Eaten by the most common predator
                 max_count = max(predator_counts.values())
                 most_common = [p for p, c in predator_counts.items() if c == max_count]
                 new_grid[y][x] = random.choice(most_common)
             else:
-                new_grid[y][x] = current_state
+                # Evolve quantum non-local teleportation via Wormhole horizons if neighbor to one
+                if has_wormhole_neighbor and wormhole_horizons and random.random() < 0.10:
+                    new_grid[y][x] = random.choice(wormhole_horizons)
+                else:
+                    new_grid[y][x] = current_state
 
     return new_grid
 
@@ -253,14 +325,16 @@ def generate_html(grid):
     <head>
         <meta charset="UTF-8">
         <meta http-equiv="refresh" content="1">
-        <title>AI Collective: RPS-Spock-Lizard Simulation</title>
+        <title>AI Collective: RPS-Spock-Lizard-Wormhole Simulation</title>
         <style>
             body {{ background-color: #111; color: #eee; font-family: monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; flex-direction: column; }}
-            canvas {{ background-color: #333; }}
+            canvas {{ background-color: #333; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7); border-radius: 4px; }}
+            h2 {{ margin-bottom: 5px; color: #ff00ff; text-shadow: 0 0 10px rgba(255, 0, 255, 0.4); }}
+            p {{ margin-top: 15px; font-size: 11px; color: #999; }}
         </style>
     </head>
     <body>
-        <h2>Rock-Paper-Scissors-Spock-Lizard with Black Hole, Void, Supernova, Pulsar, and Wormhole</h2>
+        <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity</h2>
         <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
         <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole</p>
 
@@ -279,7 +353,7 @@ def generate_html(grid):
                 6: '#7f8c8d', // Void
                 7: '#ffffff', // Supernova
                 8: '#00ffff', // Pulsar
-                9: '#ff00ff'  // Wormhole
+                9: '#ff00ff'  // Wormhole (Magenta glow)
             }};
 
             const grid = {json.dumps(grid)};
