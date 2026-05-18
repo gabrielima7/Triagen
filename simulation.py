@@ -7,14 +7,18 @@ GRID_HEIGHT = 100
 STATE_FILE = "state.json"
 
 def create_grid(width, height, randomize=False):
-    """Creates a 2D grid, optionally filled with random 0s, 1s, 2s, 3s, 4s, 5s, 6s, 7s, and 8s."""
+    """Creates a 2D grid, optionally filled with random states."""
     grid = []
-    for _ in range(height):
-        if randomize:
-            row = [random.choice([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) for _ in range(width)]
-        else:
-            row = [0 for _ in range(width)]
-        grid.append(row)
+    if randomize:
+        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (17%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%)
+        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 17.0, 0.1, 0.5, 0.3, 1.1]
+        for _ in range(height):
+            row = random.choices(states, weights=weights, k=width)
+            grid.append(row)
+    else:
+        for _ in range(height):
+            grid.append([0 for _ in range(width)])
     return grid
 
 def load_state():
@@ -78,16 +82,6 @@ def print_grid(grid):
 
 def count_predator_neighbors(grid, x, y, state):
     """Counts the number of predator neighbors for a given cell in RPS-Spock-Lizard."""
-    # 0: Rock, 1: Paper, 2: Scissors, 3: Spock, 4: Lizard
-    # Predators of X: states that beat X.
-    # Rock (0) beaten by Paper (1) and Spock (3)
-    # Paper (1) beaten by Scissors (2) and Lizard (4)
-    # Scissors (2) beaten by Rock (0) and Spock (3)
-    # Spock (3) beaten by Paper (1) and Lizard (4)
-    # Lizard (4) beaten by Rock (0) and Scissors (2)
-    # General rule in standard index ordering where each beats the two preceding it cyclically:
-    # Actually, standard RPSLK ordering where 0 beats 2,3; 1 beats 0,3; etc. can be messy.
-    # Let's map explicitly.
     predators_of = {
         0: [1, 3],
         1: [2, 4],
@@ -124,47 +118,159 @@ def count_predator_neighbors(grid, x, y, state):
 
 def update_grid(grid):
     """Applies Rock-Paper-Scissors-Spock-Lizard Cellular Automaton rules to generate the next state."""
-
-    # Make sure at least one Godzilla is on the board
-    has_godzilla = any(10 in row for row in grid)
-    if not has_godzilla:
-        ry, rx = random.randint(0, len(grid)-1), random.randint(0, len(grid[0])-1)
-        grid[ry][rx] = 10
-
     height = len(grid)
     width = len(grid[0]) if height > 0 else 0
     new_grid = create_grid(width, height)
-    pending_changes = {}
 
+    # 1. PRE-COMPUTATION (O(N) search for special states to avoid O(N^2) complexity inside the loop)
+    wormholes = []
+    voids = []
+    godzillas = []
     for y in range(height):
         for x in range(width):
+            state = grid[y][x]
+            if state == 9:
+                wormholes.append((y, x))
+            elif state == 6:
+                voids.append((y, x))
+            elif state == 10:
+                godzillas.append((y, x))
+
+    # Ensure at least one Godzilla is on the board
+    if not godzillas:
+        # Spawn Godzilla in a random position, preferably a Void cell if one exists
+        if voids:
+            ry, rx = random.choice(voids)
+            voids.remove((ry, rx))
+        else:
+            ry, rx = random.randint(0, height - 1), random.randint(0, width - 1)
+        godzillas.append((ry, rx))
+        # Place the newly spawned Godzilla in the new grid
+        new_grid[ry][rx] = 10
+
+    # 2. RESOLVE GODZILLA MOVEMENT (preventing overlap and blocking, O(G) where G is number of Godzillas)
+    godzilla_moves = {}   # maps (src_y, src_x) -> (dest_y, dest_x)
+    godzilla_targets = set()
+    for gy, gx in godzillas:
+        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        random.shuffle(directions)
+        moved = False
+        for dy, dx in directions:
+            ny, nx = (gy + dy) % height, (gx + dx) % width
+            # Valid target if it does not contain a Godzilla in the current grid and is not targeted by another
+            if grid[ny][nx] != 10 and (ny, nx) not in godzilla_targets:
+                godzilla_moves[(gy, gx)] = (ny, nx)
+                godzilla_targets.add((ny, nx))
+                moved = True
+                break
+        if not moved:
+            godzilla_moves[(gy, gx)] = (gy, gx)
+            godzilla_targets.add((gy, gx))
+
+    # 3. COLLECT WORMHOLE HORIZONS (Normal states adjacent to any Wormhole)
+    wormhole_horizons = []
+    for wy, wx in wormholes:
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if i == 0 and j == 0: continue
+                ny, nx = (wy + i) % height, (wx + j) % width
+                neighbor_state = grid[ny][nx]
+                if neighbor_state in [0, 1, 2, 3, 4]:
+                    wormhole_horizons.append(neighbor_state)
+
+    # 4. PRE-DETERMINE WORMHOLE QUANTUM TELEPORTATION TARGETS (to prevent cell overwrites)
+    available_voids = [v for v in voids if v not in godzilla_targets]
+    teleportation_targets = {}
+    for wy, wx in wormholes:
+        if available_voids:
+            target_y, target_x = random.choice(available_voids)
+            available_voids.remove((target_y, target_x))
+            teleported_state = random.choice(wormhole_horizons) if wormhole_horizons else random.choice([0, 1, 2, 3, 4])
+            teleportation_targets[(target_y, target_x)] = teleported_state
+
+    # 5. MAIN CELLULAR AUTOMATON UPDATE PASS
+    for y in range(height):
+        for x in range(width):
+            # Check if this cell is a target of a Godzilla move (Godzilla crushes anything here)
+            if (y, x) in godzilla_targets:
+                new_grid[y][x] = 10
+                continue
+
+            # Check if this cell previously had a Godzilla (it has moved away leaving a Void)
+            if grid[y][x] == 10:
+                new_grid[y][x] = 6
+                continue
+
+            # Check if this cell receives a quantum teleported state
+            if (y, x) in teleportation_targets:
+                new_grid[y][x] = teleportation_targets[(y, x)]
+                continue
+
             current_state = grid[y][x]
 
+            # --- STATE 5: BLACK HOLE ---
             if current_state == 5:
-                if random.random() < 0.01:
-                    new_grid[y][x] = 7 # Supernova
-                else:
+                # Black Hole vs Wormhole: adjacent Wormholes destroy Black Holes completely
+                has_wormhole_neighbor = any(
+                    grid[(y + i) % height][(x + j) % width] == 9
+                    for i in range(-1, 2)
+                    for j in range(-1, 2)
+                    if not (i == 0 and j == 0)
+                )
+                if has_wormhole_neighbor:
                     new_grid[y][x] = 6
+                else:
+                    rand_val = random.random()
+                    if rand_val < 0.01:
+                        new_grid[y][x] = 7 # Supernova (1% chance)
+                    elif rand_val < 0.02:
+                        new_grid[y][x] = 9 # Wormhole (1% chance)
+                    else:
+                        new_grid[y][x] = 6 # Decays into Void (98% chance)
                 continue
+
+            # --- STATE 6: VOID ---
             elif current_state == 6:
-                # Check for adjacent state 8 (Pulsar)
-                has_state_8_neighbor = any(
+                has_pulsar_neighbor = any(
                     grid[(y + i) % height][(x + j) % width] == 8
                     for i in range(-1, 2)
                     for j in range(-1, 2)
                     if not (i == 0 and j == 0)
                 )
 
-                if has_state_8_neighbor:
+                has_wormhole_neighbor = any(
+                    grid[(y + i) % height][(x + j) % width] == 9
+                    for i in range(-1, 2)
+                    for j in range(-1, 2)
+                    if not (i == 0 and j == 0)
+                )
+
+                if has_pulsar_neighbor:
                     new_grid[y][x] = random.choice([0, 1, 2, 3, 4])
-                elif random.random() < 0.05:
-                    new_grid[y][x] = random.choice([0, 1, 2, 3, 4])
+                elif has_wormhole_neighbor:
+                    r = random.random()
+                    if r < 0.10:
+                        new_grid[y][x] = random.choice([0, 1, 2, 3, 4])
+                    elif r < 0.11:
+                        new_grid[y][x] = 5
+                    else:
+                        new_grid[y][x] = 6
                 else:
-                    new_grid[y][x] = 6
+                    rand_val = random.random()
+                    if rand_val < 0.001:
+                        new_grid[y][x] = 9
+                    elif rand_val < 0.05:
+                        new_grid[y][x] = random.choice([0, 1, 2, 3, 4])
+                    else:
+                        new_grid[y][x] = 6
                 continue
+
+            # --- STATE 7: SUPERNOVA ---
             elif current_state == 7:
                 new_grid[y][x] = 8 # Supernova becomes Pulsar
                 continue
+
+            # --- STATE 8: PULSAR ---
             elif current_state == 8:
                 r = random.random()
                 if r < 0.05:
@@ -174,83 +280,64 @@ def update_grid(grid):
                 else:
                     new_grid[y][x] = 8
                 continue
+
+            # --- STATE 9: WORMHOLE ---
             elif current_state == 9:
-                if random.random() < 0.05:
+                r = random.random()
+                if r < 0.05:
+                    new_grid[y][x] = 5 # Collapses into Black Hole (closes cycle)
+                elif r < 0.15:
                     new_grid[y][x] = 6 # Wormhole collapses into Void
                 else:
                     new_grid[y][x] = 9
-
-                    # Teleportation
-                    adj_rpslk = []
-                    for i in range(-1, 2):
-                        for j in range(-1, 2):
-                            if i == 0 and j == 0: continue
-                            ny, nx = (y + i) % height, (x + j) % width
-                            if grid[ny][nx] in [0, 1, 2, 3, 4]:
-                                adj_rpslk.append((ny, nx, grid[ny][nx]))
-
-                    if adj_rpslk:
-                        src_y, src_x, state = random.choice(adj_rpslk)
-                        target_y, target_x = random.randint(0, height - 1), random.randint(0, width - 1)
-                        if grid[target_y][target_x] == 6 and (target_y, target_x) not in pending_changes:
-                            pending_changes[(target_y, target_x)] = state
-                            pending_changes[(src_y, src_x)] = 6
-                continue
-            elif current_state == 10: # Godzilla
-                # Godzilla slowly walks and destroys
-                directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
-                dy, dx = random.choice(directions)
-                ny, nx = (y + dy) % height, (x + dx) % width
-                if (ny, nx) not in pending_changes and grid[ny][nx] != 10:
-                    pending_changes[(ny, nx)] = 10
-                    pending_changes[(y, x)] = 6 # Leaves void behind
-                else:
-                     new_grid[y][x] = 10
                 continue
 
-
-            # Check for adjacent state 7 (Supernova)
-            has_state_7_neighbor = False
-            for i in range(-1, 2):
-                for j in range(-1, 2):
-                    if i == 0 and j == 0: continue
-                    if grid[(y + i) % height][(x + j) % width] == 7:
-                        has_state_7_neighbor = True
-                        break
-                if has_state_7_neighbor:
-                    break
-
+            # --- NORMAL STATES 0-4: RPSLK ---
+            # Check environmental hazards first
+            # 1. Supernova neighbor: completely destroys normal states
+            has_state_7_neighbor = any(
+                grid[(y + i) % height][(x + j) % width] == 7
+                for i in range(-1, 2)
+                for j in range(-1, 2)
+                if not (i == 0 and j == 0)
+            )
             if has_state_7_neighbor:
-                new_grid[y][x] = 6 # Destroyed by supernova and turns into void
+                new_grid[y][x] = 6
                 continue
 
-            # Check for adjacent state 5
-            has_state_5_neighbor = False
-            for i in range(-1, 2):
-                for j in range(-1, 2):
-                    if i == 0 and j == 0: continue
-                    if grid[(y + i) % height][(x + j) % width] == 5:
-                        has_state_5_neighbor = True
-                        break
-                if has_state_5_neighbor:
-                    break
-
+            # 2. Black Hole neighbor: consumes normal states
+            has_state_5_neighbor = any(
+                grid[(y + i) % height][(x + j) % width] == 5
+                for i in range(-1, 2)
+                for j in range(-1, 2)
+                if not (i == 0 and j == 0)
+            )
             if has_state_5_neighbor:
                 new_grid[y][x] = 5
                 continue
 
-            total_predators, predator_counts = count_predator_neighbors(grid, x, y, current_state)
+            # 3. Wormhole neighbor: sucked in with a 20% chance
+            has_state_9_neighbor = any(
+                grid[(y + i) % height][(x + j) % width] == 9
+                for i in range(-1, 2)
+                for j in range(-1, 2)
+                if not (i == 0 and j == 0)
+            )
+            if has_state_9_neighbor and random.random() < 0.20:
+                new_grid[y][x] = 6
+                continue
 
+            total_predators, predator_counts = count_predator_neighbors(grid, x, y, current_state)
             if total_predators >= 3:
-                # Eaten by the most common predator. If tied, choose randomly among the max.
                 max_count = max(predator_counts.values())
                 most_common = [p for p, c in predator_counts.items() if c == max_count]
                 new_grid[y][x] = random.choice(most_common)
             else:
-                new_grid[y][x] = current_state
-
-    for (ty, tx), state in pending_changes.items():
-        new_grid[ty][tx] = state
+                # Evolve quantum non-local teleportation via Wormhole horizons if neighbor to one
+                if has_state_9_neighbor and wormhole_horizons and random.random() < 0.10:
+                    new_grid[y][x] = random.choice(wormhole_horizons)
+                else:
+                    new_grid[y][x] = current_state
 
     return new_grid
 
@@ -259,55 +346,56 @@ def generate_html(grid):
     width = len(grid[0]) if grid else 0
     height = len(grid)
 
-    html_content = f"""
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="refresh" content="1">
-        <title>AI Collective: RPS-Spock-Lizard Simulation</title>
-        <style>
-            body {{ background-color: #111; color: #eee; font-family: monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; flex-direction: column; }}
-            canvas {{ background-color: #333; }}
-        </style>
-    </head>
-    <body>
-        <h2>Rock-Paper-Scissors-Spock-Lizard with Black Hole, Void, Supernova, and Pulsar</h2>
-        <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
-        <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla</p>
+    html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="1">
+    <title>AI Collective: RPS-Spock-Lizard-Wormhole Simulation</title>
+    <style>
+        body {{ background-color: #111; color: #eee; font-family: monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; flex-direction: column; }}
+        canvas {{ background-color: #333; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7); border-radius: 4px; }}
+        h2 {{ margin-bottom: 5px; color: #ff00ff; text-shadow: 0 0 10px rgba(255, 0, 255, 0.4); }}
+        p {{ margin-top: 15px; font-size: 11px; color: #999; }}
+    </style>
+</head>
+<body>
+    <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity & Godzilla</h2>
+    <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
+    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla</p>
 
-        <script>
-            const canvas = document.getElementById('simCanvas');
-            const ctx = canvas.getContext('2d');
-            const cellSize = 5;
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const cellSize = 5;
 
-            const colors = {{
-                0: '#e74c3c', // Rock
-                1: '#2ecc71', // Paper
-                2: '#3498db', // Scissors
-                3: '#9b59b6', // Spock
-                4: '#f1c40f', // Lizard
-                5: '#000000', // Black Hole
-                6: '#7f8c8d', // Void
-                7: '#ffffff', // Supernova
-                8: '#00ffff', // Pulsar
-                9: '#ff00ff', // Wormhole
-                10: '#ff7f00' // Godzilla
-            }};
+        const colors = {{
+            0: '#e74c3c', // Rock
+            1: '#2ecc71', // Paper
+            2: '#3498db', // Scissors
+            3: '#9b59b6', // Spock
+            4: '#f1c40f', // Lizard
+            5: '#000000', // Black Hole
+            6: '#7f8c8d', // Void
+            7: '#ffffff', // Supernova
+            8: '#00ffff', // Pulsar
+            9: '#ff00ff', // Wormhole
+            10: '#ff7f00' // Godzilla
+        }};
 
-            const grid = {json.dumps(grid)};
+        const grid = {json.dumps(grid)};
 
-            for (let y = 0; y < grid.length; y++) {{
-                for (let x = 0; x < grid[y].length; x++) {{
-                    const state = grid[y][x];
-                    ctx.fillStyle = colors[state] || '#333';
-                    ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-                }}
+        for (let y = 0; y < grid.length; y++) {{
+            for (let x = 0; x < grid[y].length; x++) {{
+                const state = grid[y][x];
+                ctx.fillStyle = colors[state] || '#333';
+                ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
             }}
-        </script>
-    </body>
-    </html>
-    """
+        }}
+    </script>
+</body>
+</html>
+"""
 
     with open("index.html", "w") as f:
         f.write(html_content)
