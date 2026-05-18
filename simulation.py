@@ -7,11 +7,11 @@ GRID_HEIGHT = 100
 STATE_FILE = "state.json"
 
 def create_grid(width, height, randomize=False):
-    """Creates a 2D grid, optionally filled with random 0s, 1s, 2s, 3s, 4s, 5s, 6s, 7s, and 8s."""
+    """Creates a 2D grid, optionally filled with random 0s, 1s, 2s, 3s, 4s, 5s, 6s, 7s, 8s, and 9s."""
     grid = []
     for _ in range(height):
         if randomize:
-            row = [random.choice([0, 1, 2, 3, 4, 5, 6, 7, 8]) for _ in range(width)]
+            row = [random.choice([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) for _ in range(width)]
         else:
             row = [0 for _ in range(width)]
         grid.append(row)
@@ -71,7 +71,7 @@ def save_state(grid):
 
 def print_grid(grid):
     """Prints the grid to the console."""
-    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@"}
+    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@", 9: "W"}
     for row in grid:
         print(" ".join(chars.get(cell, "?") for cell in row))
     print()
@@ -133,8 +133,11 @@ def update_grid(grid):
             current_state = grid[y][x]
 
             if current_state == 5:
-                if random.random() < 0.01:
+                rand_val = random.random()
+                if rand_val < 0.01:
                     new_grid[y][x] = 7 # Supernova
+                elif rand_val < 0.02: # 1% chance for Wormhole
+                    new_grid[y][x] = 9 # Wormhole
                 else:
                     new_grid[y][x] = 6
                 continue
@@ -162,6 +165,38 @@ def update_grid(grid):
                     new_grid[y][x] = 6 # Pulsar becomes Void
                 else:
                     new_grid[y][x] = 8
+                continue
+            elif current_state == 9:
+                # Wormhole teleports stuff to random void cells, and destroys adjacent cells.
+                # Find all void cells
+                void_cells = []
+                for vy in range(height):
+                    for vx in range(width):
+                        if grid[vy][vx] == 6 and not (vy == y and vx == x):
+                            void_cells.append((vy, vx))
+
+                # Teleport random RPSLK lifeform to a random void cell
+                if void_cells:
+                    target_y, target_x = random.choice(void_cells)
+                    new_grid[target_y][target_x] = random.choice([0, 1, 2, 3, 4])
+
+                # It destroys itself after one turn
+                new_grid[y][x] = 6
+                continue
+
+            # Check for adjacent state 9 (Wormhole)
+            has_state_9_neighbor = False
+            for i in range(-1, 2):
+                for j in range(-1, 2):
+                    if i == 0 and j == 0: continue
+                    if grid[(y + i) % height][(x + j) % width] == 9:
+                        has_state_9_neighbor = True
+                        break
+                if has_state_9_neighbor:
+                    break
+
+            if has_state_9_neighbor:
+                new_grid[y][x] = 6 # Sucked into wormhole and turns into void
                 continue
 
             # Check for adjacent state 7 (Supernova)
@@ -224,9 +259,9 @@ def generate_html(grid):
         </style>
     </head>
     <body>
-        <h2>Rock-Paper-Scissors-Spock-Lizard with Black Hole, Void, Supernova, and Pulsar</h2>
+        <h2>Rock-Paper-Scissors-Spock-Lizard with Black Hole, Void, Supernova, Pulsar, and Wormhole</h2>
         <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
-        <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar</p>
+        <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole</p>
 
         <script>
             const canvas = document.getElementById('simCanvas');
@@ -242,7 +277,8 @@ def generate_html(grid):
                 5: '#000000', // Black Hole
                 6: '#7f8c8d', // Void
                 7: '#ffffff', // Supernova
-                8: '#00ffff'  // Pulsar
+                8: '#00ffff', // Pulsar
+                9: '#ff00ff'  // Wormhole
             }};
 
             const grid = {json.dumps(grid)};
