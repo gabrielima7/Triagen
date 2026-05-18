@@ -11,7 +11,7 @@ def create_grid(width, height, randomize=False):
     grid = []
     for _ in range(height):
         if randomize:
-            row = [random.choice([0, 1, 2, 3, 4, 5, 6, 7, 8]) for _ in range(width)]
+            row = [random.choice([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) for _ in range(width)]
         else:
             row = [0 for _ in range(width)]
         grid.append(row)
@@ -71,7 +71,7 @@ def save_state(grid):
 
 def print_grid(grid):
     """Prints the grid to the console."""
-    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@"}
+    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@", 9: "W", 10: "G"}
     for row in grid:
         print(" ".join(chars.get(cell, "?") for cell in row))
     print()
@@ -124,9 +124,17 @@ def count_predator_neighbors(grid, x, y, state):
 
 def update_grid(grid):
     """Applies Rock-Paper-Scissors-Spock-Lizard Cellular Automaton rules to generate the next state."""
+
+    # Make sure at least one Godzilla is on the board
+    has_godzilla = any(10 in row for row in grid)
+    if not has_godzilla:
+        ry, rx = random.randint(0, len(grid)-1), random.randint(0, len(grid[0])-1)
+        grid[ry][rx] = 10
+
     height = len(grid)
     width = len(grid[0]) if height > 0 else 0
     new_grid = create_grid(width, height)
+    pending_changes = {}
 
     for y in range(height):
         for x in range(width):
@@ -158,11 +166,48 @@ def update_grid(grid):
                 new_grid[y][x] = 8 # Supernova becomes Pulsar
                 continue
             elif current_state == 8:
-                if random.random() < 0.10:
+                r = random.random()
+                if r < 0.05:
+                    new_grid[y][x] = 9 # Pulsar becomes Wormhole
+                elif r < 0.10:
                     new_grid[y][x] = 6 # Pulsar becomes Void
                 else:
                     new_grid[y][x] = 8
                 continue
+            elif current_state == 9:
+                if random.random() < 0.05:
+                    new_grid[y][x] = 6 # Wormhole collapses into Void
+                else:
+                    new_grid[y][x] = 9
+
+                    # Teleportation
+                    adj_rpslk = []
+                    for i in range(-1, 2):
+                        for j in range(-1, 2):
+                            if i == 0 and j == 0: continue
+                            ny, nx = (y + i) % height, (x + j) % width
+                            if grid[ny][nx] in [0, 1, 2, 3, 4]:
+                                adj_rpslk.append((ny, nx, grid[ny][nx]))
+
+                    if adj_rpslk:
+                        src_y, src_x, state = random.choice(adj_rpslk)
+                        target_y, target_x = random.randint(0, height - 1), random.randint(0, width - 1)
+                        if grid[target_y][target_x] == 6 and (target_y, target_x) not in pending_changes:
+                            pending_changes[(target_y, target_x)] = state
+                            pending_changes[(src_y, src_x)] = 6
+                continue
+            elif current_state == 10: # Godzilla
+                # Godzilla slowly walks and destroys
+                directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+                dy, dx = random.choice(directions)
+                ny, nx = (y + dy) % height, (x + dx) % width
+                if (ny, nx) not in pending_changes and grid[ny][nx] != 10:
+                    pending_changes[(ny, nx)] = 10
+                    pending_changes[(y, x)] = 6 # Leaves void behind
+                else:
+                     new_grid[y][x] = 10
+                continue
+
 
             # Check for adjacent state 7 (Supernova)
             has_state_7_neighbor = False
@@ -204,6 +249,9 @@ def update_grid(grid):
             else:
                 new_grid[y][x] = current_state
 
+    for (ty, tx), state in pending_changes.items():
+        new_grid[ty][tx] = state
+
     return new_grid
 
 def generate_html(grid):
@@ -226,7 +274,7 @@ def generate_html(grid):
     <body>
         <h2>Rock-Paper-Scissors-Spock-Lizard with Black Hole, Void, Supernova, and Pulsar</h2>
         <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
-        <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar</p>
+        <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla</p>
 
         <script>
             const canvas = document.getElementById('simCanvas');
@@ -242,7 +290,9 @@ def generate_html(grid):
                 5: '#000000', // Black Hole
                 6: '#7f8c8d', // Void
                 7: '#ffffff', // Supernova
-                8: '#00ffff'  // Pulsar
+                8: '#00ffff', // Pulsar
+                9: '#ff00ff', // Wormhole
+                10: '#ff7f00' // Godzilla
             }};
 
             const grid = {json.dumps(grid)};
