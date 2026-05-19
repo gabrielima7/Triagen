@@ -227,8 +227,7 @@ def update_grid(grid):
         else:
             jaeger_targets.add((jy, jx))
 
-    # 2.7 RESOLVE MOTHRA MOVEMENT (random movement like Godzilla)
-    mothra_moves = {}
+    # 2.6 RESOLVE MOTHRA MOVEMENT (random movement like Godzilla)
     mothra_targets = set()
     for my, mx in mothras:
         directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
@@ -236,13 +235,13 @@ def update_grid(grid):
         moved = False
         for dy, dx in directions:
             ny, nx = (my + dy) % height, (mx + dx) % width
+            # Valid target if it does not contain a Mothra in the current grid and is not targeted by another
             if grid[ny][nx] != 12 and (ny, nx) not in mothra_targets:
-                mothra_moves[(my, mx)] = (ny, nx)
                 mothra_targets.add((ny, nx))
                 moved = True
                 break
         if not moved:
-            mothra_moves[(my, mx)] = (my, mx)
+
             mothra_targets.add((my, mx))
 
     # 3. COLLECT WORMHOLE HORIZONS (Normal states adjacent to any Wormhole)
@@ -290,14 +289,15 @@ def update_grid(grid):
                 new_grid[y][x] = 12
                 continue
 
-            # Check if this cell previously had a Mothra (it moved away leaving life)
-            if grid[y][x] == 12:
-                new_grid[y][x] = random.choice([0, 1, 2, 3, 4])
-                continue
 
             # Check if this cell previously had a Godzilla or Jaeger (it has moved away leaving a Void)
             if grid[y][x] == 10 or grid[y][x] == 11:
                 new_grid[y][x] = 6
+                continue
+
+            # Check if this cell previously had a Mothra (it has moved away leaving Life)
+            if grid[y][x] == 12:
+                new_grid[y][x] = random.choice([0, 1, 2, 3, 4])
                 continue
 
             # Check if this cell receives a quantum teleported state
