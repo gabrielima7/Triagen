@@ -10,9 +10,9 @@ def create_grid(width, height, randomize=False):
     """Creates a 2D grid, optionally filled with random states."""
     grid = []
     if randomize:
-        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (17%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%)
-        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 17.0, 0.1, 0.5, 0.3, 1.1, 0.5]
+        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (17%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%)
+        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 17.0, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5]
         for _ in range(height):
             row = random.choices(states, weights=weights, k=width)
             grid.append(row)
@@ -75,7 +75,7 @@ def save_state(grid):
 
 def print_grid(grid):
     """Prints the grid to the console."""
-    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@", 9: "W", 10: "G", 11: "J"}
+    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@", 9: "W", 10: "G", 11: "J", 12: "M"}
     for row in grid:
         print(" ".join(chars.get(cell, "?") for cell in row))
     print()
@@ -127,6 +127,7 @@ def update_grid(grid):
     voids = []
     godzillas = []
     jaegers = []
+    mothras = []
     for y in range(height):
         for x in range(width):
             state = grid[y][x]
@@ -138,6 +139,8 @@ def update_grid(grid):
                 godzillas.append((y, x))
             elif state == 11:
                 jaegers.append((y, x))
+            elif state == 12:
+                mothras.append((y, x))
 
     # Ensure at least one Godzilla and Jaeger are on the board
     if not godzillas:
@@ -161,6 +164,17 @@ def update_grid(grid):
         jaegers.append((ry, rx))
         # Place the newly spawned Jaeger in the new grid
         new_grid[ry][rx] = 11
+
+    if not mothras:
+        # Spawn Mothra in a random position, preferably a Void cell if one exists
+        if voids:
+            ry, rx = random.choice(voids)
+            voids.remove((ry, rx))
+        else:
+            ry, rx = random.randint(0, height - 1), random.randint(0, width - 1)
+        mothras.append((ry, rx))
+        # Place the newly spawned Mothra in the new grid
+        new_grid[ry][rx] = 12
 
     # 2. RESOLVE GODZILLA MOVEMENT (preventing overlap and blocking, O(G) where G is number of Godzillas)
     godzilla_moves = {}   # maps (src_y, src_x) -> (dest_y, dest_x)
@@ -213,6 +227,22 @@ def update_grid(grid):
         else:
             jaeger_targets.add((jy, jx))
 
+    # 2.6 RESOLVE MOTHRA MOVEMENT
+    mothra_targets = set()
+    for my, mx in mothras:
+        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        random.shuffle(directions)
+        moved = False
+        for dy, dx in directions:
+            ny, nx = (my + dy) % height, (mx + dx) % width
+            # Valid target if it does not contain a Mothra in the current grid and is not targeted by another
+            if grid[ny][nx] != 12 and (ny, nx) not in mothra_targets:
+                mothra_targets.add((ny, nx))
+                moved = True
+                break
+        if not moved:
+            mothra_targets.add((my, mx))
+
     # 3. COLLECT WORMHOLE HORIZONS (Normal states adjacent to any Wormhole)
     wormhole_horizons = []
     for wy, wx in wormholes:
@@ -253,9 +283,19 @@ def update_grid(grid):
                 new_grid[y][x] = 11
                 continue
 
+            # Check if this cell is a target of a Mothra move
+            if (y, x) in mothra_targets:
+                new_grid[y][x] = 12
+                continue
+
             # Check if this cell previously had a Godzilla or Jaeger (it has moved away leaving a Void)
             if grid[y][x] == 10 or grid[y][x] == 11:
                 new_grid[y][x] = 6
+                continue
+
+            # Check if this cell previously had a Mothra (it has moved away leaving Life)
+            if grid[y][x] == 12:
+                new_grid[y][x] = random.choice([0, 1, 2, 3, 4])
                 continue
 
             # Check if this cell receives a quantum teleported state
@@ -419,7 +459,7 @@ def generate_html(grid):
 <body>
     <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, & Jaeger</h2>
     <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
-    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger</p>
+    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra</p>
 
     <script>
         const canvas = document.getElementById('simCanvas');
@@ -438,7 +478,8 @@ def generate_html(grid):
             8: '#00ffff', // Pulsar
             9: '#ff00ff', // Wormhole
             10: '#ff7f00', // Godzilla
-            11: '#bdc3c7' // Jaeger
+            11: '#bdc3c7', // Jaeger
+            12: '#ffd700' // Mothra
         }};
 
         const grid = {json.dumps(grid)};
