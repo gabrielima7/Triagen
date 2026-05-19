@@ -10,9 +10,9 @@ def create_grid(width, height, randomize=False):
     """Creates a 2D grid, optionally filled with random states."""
     grid = []
     if randomize:
-        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.5%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%)
-        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.5, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5]
+        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.5%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%)
+        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.5, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05]
         for _ in range(height):
             row = random.choices(states, weights=weights, k=width)
             grid.append(row)
@@ -75,7 +75,7 @@ def save_state(grid):
 
 def print_grid(grid):
     """Prints the grid to the console."""
-    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@", 9: "W", 10: "G", 11: "J", 12: "M"}
+    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@", 9: "W", 10: "G", 11: "J", 12: "M", 13: "X"}
     for row in grid:
         print(" ".join(chars.get(cell, "?") for cell in row))
     print()
@@ -128,6 +128,7 @@ def update_grid(grid):
     godzillas = []
     jaegers = []
     mothras = []
+    glitches = []
     for y in range(height):
         for x in range(width):
             state = grid[y][x]
@@ -141,6 +142,8 @@ def update_grid(grid):
                 jaegers.append((y, x))
             elif state == 12:
                 mothras.append((y, x))
+            elif state == 13:
+                glitches.append((y, x))
 
     # Ensure at least one Godzilla, Jaeger, and Mothra are on the board
     if not godzillas:
@@ -307,6 +310,24 @@ def update_grid(grid):
 
             current_state = grid[y][x]
 
+            # --- STATE 13: GLITCH ---
+            glitch_neighbors = sum(
+                1 for i in range(-1, 2) for j in range(-1, 2)
+                if not (i == 0 and j == 0) and grid[(y + i) % height][(x + j) % width] == 13
+            )
+
+            if current_state == 13:
+                if glitch_neighbors >= 4:
+                    new_grid[y][x] = 6 # Collapses into Void
+                else:
+                    new_grid[y][x] = 13 # Stays Glitch
+                continue
+
+            if glitch_neighbors > 0:
+                if random.random() < (0.10 * glitch_neighbors):
+                    new_grid[y][x] = 13
+                    continue
+
             # --- STATE 5: BLACK HOLE ---
             if current_state == 5:
                 # Black Hole vs Wormhole: adjacent Wormholes destroy Black Holes completely
@@ -360,6 +381,8 @@ def update_grid(grid):
                         new_grid[y][x] = 9
                     elif rand_val < 0.05:
                         new_grid[y][x] = random.choice([0, 1, 2, 3, 4])
+                    elif rand_val < 0.0505:
+                        new_grid[y][x] = 13
                     else:
                         new_grid[y][x] = 6
                 continue
@@ -461,9 +484,9 @@ def generate_html(grid):
     </style>
 </head>
 <body>
-    <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, & Jaeger</h2>
+    <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, Jaeger, Mothra & Glitch</h2>
     <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
-    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra</p>
+    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch</p>
 
     <script>
         const canvas = document.getElementById('simCanvas');
@@ -483,7 +506,8 @@ def generate_html(grid):
             9: '#ff00ff', // Wormhole
             10: '#ff7f00', // Godzilla
             11: '#bdc3c7', // Jaeger
-            12: '#ffd700' // Mothra
+            12: '#ffd700', // Mothra
+            13: '#39ff14' // Glitch
         }};
 
         const grid = {json.dumps(grid)};
