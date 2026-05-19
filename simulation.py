@@ -11,8 +11,8 @@ def create_grid(width, height, randomize=False):
     grid = []
     if randomize:
         states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (17%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%)
-        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 17.0, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5]
+        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.5%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%)
+        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.5, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5]
         for _ in range(height):
             row = random.choices(states, weights=weights, k=width)
             grid.append(row)
@@ -142,7 +142,7 @@ def update_grid(grid):
             elif state == 12:
                 mothras.append((y, x))
 
-    # Ensure at least one Godzilla and Jaeger are on the board
+    # Ensure at least one Godzilla, Jaeger, and Mothra are on the board
     if not godzillas:
         # Spawn Godzilla in a random position, preferably a Void cell if one exists
         if voids:
@@ -227,7 +227,7 @@ def update_grid(grid):
         else:
             jaeger_targets.add((jy, jx))
 
-    # 2.6 RESOLVE MOTHRA MOVEMENT
+    # 2.6 RESOLVE MOTHRA MOVEMENT (random movement like Godzilla)
     mothra_targets = set()
     for my, mx in mothras:
         directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
@@ -241,6 +241,7 @@ def update_grid(grid):
                 moved = True
                 break
         if not moved:
+
             mothra_targets.add((my, mx))
 
     # 3. COLLECT WORMHOLE HORIZONS (Normal states adjacent to any Wormhole)
@@ -255,7 +256,7 @@ def update_grid(grid):
                     wormhole_horizons.append(neighbor_state)
 
     # 4. PRE-DETERMINE WORMHOLE QUANTUM TELEPORTATION TARGETS (to prevent cell overwrites)
-    available_voids = [v for v in voids if v not in godzilla_targets]
+    available_voids = [v for v in voids if v not in godzilla_targets and v not in mothra_targets]
     teleportation_targets = {}
     for wy, wx in wormholes:
         if available_voids:
@@ -287,6 +288,7 @@ def update_grid(grid):
             if (y, x) in mothra_targets:
                 new_grid[y][x] = 12
                 continue
+
 
             # Check if this cell previously had a Godzilla or Jaeger (it has moved away leaving a Void)
             if grid[y][x] == 10 or grid[y][x] == 11:
@@ -370,9 +372,11 @@ def update_grid(grid):
             # --- STATE 8: PULSAR ---
             elif current_state == 8:
                 r = random.random()
-                if r < 0.05:
+                if r < 0.01:
+                    new_grid[y][x] = 12 # Pulsar becomes Mothra
+                elif r < 0.06:
                     new_grid[y][x] = 9 # Pulsar becomes Wormhole
-                elif r < 0.10:
+                elif r < 0.11:
                     new_grid[y][x] = 6 # Pulsar becomes Void
                 else:
                     new_grid[y][x] = 8
