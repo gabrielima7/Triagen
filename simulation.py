@@ -10,9 +10,9 @@ def create_grid(width, height, randomize=False):
     """Creates a 2D grid, optionally filled with random states."""
     grid = []
     if randomize:
-        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.45%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%)
-        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.45, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05]
+        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.45%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%)
+        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.45, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05]
         for _ in range(height):
             row = random.choices(states, weights=weights, k=width)
             grid.append(row)
@@ -75,7 +75,7 @@ def save_state(grid):
 
 def print_grid(grid):
     """Prints the grid to the console."""
-    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@", 9: "W", 10: "G", 11: "J", 12: "M", 13: "X", 14: "A", 15: "Z"}
+    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@", 9: "W", 10: "G", 11: "J", 12: "M", 13: "X", 14: "A", 15: "Z", 16: "O"}
     for row in grid:
         print(" ".join(chars.get(cell, "?") for cell in row))
     print()
@@ -130,6 +130,7 @@ def update_grid(grid):
     mothras = []
     glitches = []
     mechagodzillas = []
+    omegas = []
     for y in range(height):
         for x in range(width):
             state = grid[y][x]
@@ -147,6 +148,8 @@ def update_grid(grid):
                 glitches.append((y, x))
             elif state == 15:
                 mechagodzillas.append((y, x))
+            elif state == 16:
+                omegas.append((y, x))
 
     # Ensure at least one Godzilla, Jaeger, and Mothra are on the board
     if not godzillas:
@@ -293,6 +296,22 @@ def update_grid(grid):
             if not moved:
                 mechagodzilla_targets.add((mgy, mgx))
 
+    # 2.8 RESOLVE OMEGA MOVEMENT (random movement)
+    omega_targets = set()
+    for oy, ox in omegas:
+        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        random.shuffle(directions)
+        moved = False
+        for dy, dx in directions:
+            ny, nx = (oy + dy) % height, (ox + dx) % width
+            # Valid target if it does not contain an Omega in the current grid and is not targeted by another
+            if grid[ny][nx] != 16 and (ny, nx) not in omega_targets:
+                omega_targets.add((ny, nx))
+                moved = True
+                break
+        if not moved:
+            omega_targets.add((oy, ox))
+
     # 3. COLLECT WORMHOLE HORIZONS (Normal states adjacent to any Wormhole)
     wormhole_horizons = []
     for wy, wx in wormholes:
@@ -305,7 +324,7 @@ def update_grid(grid):
                     wormhole_horizons.append(neighbor_state)
 
     # 4. PRE-DETERMINE WORMHOLE QUANTUM TELEPORTATION TARGETS (to prevent cell overwrites)
-    available_voids = [v for v in voids if v not in godzilla_targets and v not in mothra_targets]
+    available_voids = [v for v in voids if v not in godzilla_targets and v not in mothra_targets and v not in jaeger_targets and v not in mechagodzilla_targets and v not in omega_targets]
     teleportation_targets = {}
     for wy, wx in wormholes:
         if available_voids:
@@ -317,6 +336,17 @@ def update_grid(grid):
     # 5. MAIN CELLULAR AUTOMATON UPDATE PASS
     for y in range(height):
         for x in range(width):
+            # Check for Omega collisions with any other Kaiju
+            if (y, x) in omega_targets and ((y, x) in godzilla_targets or (y, x) in jaeger_targets or (y, x) in mothra_targets or (y, x) in mechagodzilla_targets):
+                # Mutual destruction leaving a Wormhole
+                new_grid[y][x] = 9
+                continue
+
+            # Check if this cell is a target of an Omega move
+            if (y, x) in omega_targets:
+                new_grid[y][x] = 16
+                continue
+
             # Check for Jaeger-Godzilla collisions
             if (y, x) in godzilla_targets and (y, x) in jaeger_targets:
                 # Mutual destruction into a Supernova
@@ -370,6 +400,11 @@ def update_grid(grid):
             # Check if this cell previously had a Mothra (it has moved away leaving Life)
             if grid[y][x] == 12:
                 new_grid[y][x] = random.choice([0, 1, 2, 3, 4])
+                continue
+
+            # Check if this cell previously had an Omega (it leaves behind a Black Hole)
+            if grid[y][x] == 16:
+                new_grid[y][x] = 5
                 continue
 
             # Check if this cell receives a quantum teleported state
@@ -481,7 +516,10 @@ def update_grid(grid):
 
             # --- STATE 7: SUPERNOVA ---
             elif current_state == 7:
-                new_grid[y][x] = 8 # Supernova becomes Pulsar
+                if random.random() < 0.05:
+                    new_grid[y][x] = 16 # Supernova becomes Omega
+                else:
+                    new_grid[y][x] = 8 # Supernova becomes Pulsar
                 continue
 
             # --- STATE 8: PULSAR ---
@@ -567,7 +605,7 @@ def generate_html(grid):
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="refresh" content="1">
-    <title>AI Collective: RPS-Spock-Lizard-Wormhole Simulation</title>
+    <title>AI Collective: RPS-Spock-Lizard-Wormhole Simulation with Omega</title>
     <style>
         body {{ background-color: #111; color: #eee; font-family: monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; flex-direction: column; }}
         canvas {{ background-color: #333; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7); border-radius: 4px; }}
@@ -576,9 +614,9 @@ def generate_html(grid):
     </style>
 </head>
 <body>
-    <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, Jaeger, Mothra, Glitch & MechaGodzilla</h2>
+    <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, Jaeger, Mothra, Glitch, MechaGodzilla & Omega</h2>
     <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
-    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla</p>
+    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega</p>
 
     <script>
         const canvas = document.getElementById('simCanvas');
@@ -601,7 +639,8 @@ def generate_html(grid):
             12: '#ffd700', // Mothra
             13: '#39ff14', // Glitch
             14: '#00bfff', // Anti-Virus
-            15: '#e6005c' // MechaGodzilla
+            15: '#e6005c', // MechaGodzilla
+            16: '#8a2be2' // Omega
         }};
 
         const grid = {json.dumps(grid)};
