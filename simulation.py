@@ -10,9 +10,9 @@ def create_grid(width, height, randomize=False):
     """Creates a 2D grid, optionally filled with random states."""
     grid = []
     if randomize:
-        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.45%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%)
-        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.45, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05]
+        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.45%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%)
+        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.45, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05]
         for _ in range(height):
             row = random.choices(states, weights=weights, k=width)
             grid.append(row)
@@ -75,7 +75,7 @@ def save_state(grid):
 
 def print_grid(grid):
     """Prints the grid to the console."""
-    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@", 9: "W", 10: "G", 11: "J", 12: "M", 13: "X", 14: "A", 15: "Z", 16: "O"}
+    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@", 9: "W", 10: "G", 11: "J", 12: "M", 13: "X", 14: "A", 15: "Z", 16: "O", 17: "N"}
     for row in grid:
         print(" ".join(chars.get(cell, "?") for cell in row))
     print()
@@ -194,8 +194,8 @@ def update_grid(grid):
         moved = False
         for dy, dx in directions:
             ny, nx = (gy + dy) % height, (gx + dx) % width
-            # Valid target if it does not contain a Godzilla in the current grid and is not targeted by another
-            if grid[ny][nx] != 10 and (ny, nx) not in godzilla_targets:
+            # Valid target if it does not contain a Godzilla in the current grid and is not targeted by another, and is not a Nexus
+            if grid[ny][nx] != 10 and grid[ny][nx] != 17 and (ny, nx) not in godzilla_targets:
                 godzilla_moves[(gy, gx)] = (ny, nx)
                 godzilla_targets.add((ny, nx))
                 moved = True
@@ -227,7 +227,7 @@ def update_grid(grid):
                 elif gx < jx: dx = -1
 
                 ny, nx = (jy + dy) % height, (jx + dx) % width
-                if grid[ny][nx] != 11 and (ny, nx) not in jaeger_targets:
+                if grid[ny][nx] != 11 and grid[ny][nx] != 17 and (ny, nx) not in jaeger_targets:
                     jaeger_targets.add((ny, nx))
                 else:
                     jaeger_targets.add((jy, jx))
@@ -244,8 +244,8 @@ def update_grid(grid):
         moved = False
         for dy, dx in directions:
             ny, nx = (my + dy) % height, (mx + dx) % width
-            # Valid target if it does not contain a Mothra in the current grid and is not targeted by another
-            if grid[ny][nx] != 12 and (ny, nx) not in mothra_targets:
+            # Valid target if it does not contain a Mothra in the current grid and is not targeted by another, and is not a Nexus
+            if grid[ny][nx] != 12 and grid[ny][nx] != 17 and (ny, nx) not in mothra_targets:
                 mothra_targets.add((ny, nx))
                 moved = True
                 break
@@ -276,7 +276,7 @@ def update_grid(grid):
                 elif mx < mgx: dx = -1
 
                 ny, nx = (mgy + dy) % height, (mgx + dx) % width
-                if grid[ny][nx] != 15 and (ny, nx) not in mechagodzilla_targets:
+                if grid[ny][nx] != 15 and grid[ny][nx] != 17 and (ny, nx) not in mechagodzilla_targets:
                     mechagodzilla_targets.add((ny, nx))
                 else:
                     mechagodzilla_targets.add((mgy, mgx))
@@ -289,7 +289,7 @@ def update_grid(grid):
             moved = False
             for dy, dx in directions:
                 ny, nx = (mgy + dy) % height, (mgx + dx) % width
-                if grid[ny][nx] != 15 and (ny, nx) not in mechagodzilla_targets:
+                if grid[ny][nx] != 15 and grid[ny][nx] != 17 and (ny, nx) not in mechagodzilla_targets:
                     mechagodzilla_targets.add((ny, nx))
                     moved = True
                     break
@@ -304,8 +304,8 @@ def update_grid(grid):
         moved = False
         for dy, dx in directions:
             ny, nx = (oy + dy) % height, (ox + dx) % width
-            # Valid target if it does not contain an Omega in the current grid and is not targeted by another
-            if grid[ny][nx] != 16 and (ny, nx) not in omega_targets:
+            # Valid target if it does not contain an Omega in the current grid and is not targeted by another, and is not a Nexus
+            if grid[ny][nx] != 16 and grid[ny][nx] != 17 and (ny, nx) not in omega_targets:
                 omega_targets.add((ny, nx))
                 moved = True
                 break
@@ -414,6 +414,14 @@ def update_grid(grid):
 
             current_state = grid[y][x]
 
+            # --- STATE 17: NEXUS ---
+            if current_state == 17:
+                if random.random() < 0.001: # 0.1% chance to decay
+                    new_grid[y][x] = 6
+                else:
+                    new_grid[y][x] = 17
+                continue
+
             # --- STATE 14: ANTI-VIRUS ---
             if current_state == 14:
                 glitch_neighbors = sum(
@@ -440,7 +448,15 @@ def update_grid(grid):
             )
 
             if current_state == 13:
-                if anti_virus_neighbors > 0:
+                has_nexus_neighbor = any(
+                    grid[(y + i) % height][(x + j) % width] == 17
+                    for i in range(-1, 2)
+                    for j in range(-1, 2)
+                    if not (i == 0 and j == 0)
+                )
+                if has_nexus_neighbor:
+                    new_grid[y][x] = 6 # Nexus purifies Glitch
+                elif anti_virus_neighbors > 0:
                     new_grid[y][x] = 14 # Anti-Virus cures Glitch
                 elif glitch_neighbors >= 4:
                     new_grid[y][x] = 6 # Collapses into Void
@@ -455,6 +471,12 @@ def update_grid(grid):
 
             # --- STATE 5: BLACK HOLE ---
             if current_state == 5:
+                has_nexus_neighbor = any(
+                    grid[(y + i) % height][(x + j) % width] == 17
+                    for i in range(-1, 2)
+                    for j in range(-1, 2)
+                    if not (i == 0 and j == 0)
+                )
                 # Black Hole vs Wormhole: adjacent Wormholes destroy Black Holes completely
                 has_wormhole_neighbor = any(
                     grid[(y + i) % height][(x + j) % width] == 9
@@ -462,7 +484,9 @@ def update_grid(grid):
                     for j in range(-1, 2)
                     if not (i == 0 and j == 0)
                 )
-                if has_wormhole_neighbor:
+                if has_nexus_neighbor:
+                    new_grid[y][x] = 6 # Nexus neutralizes Black Hole
+                elif has_wormhole_neighbor:
                     new_grid[y][x] = 6
                 else:
                     rand_val = random.random()
@@ -476,6 +500,12 @@ def update_grid(grid):
 
             # --- STATE 6: VOID ---
             elif current_state == 6:
+                has_nexus_neighbor = any(
+                    grid[(y + i) % height][(x + j) % width] == 17
+                    for i in range(-1, 2)
+                    for j in range(-1, 2)
+                    if not (i == 0 and j == 0)
+                )
                 has_pulsar_neighbor = any(
                     grid[(y + i) % height][(x + j) % width] == 8
                     for i in range(-1, 2)
@@ -490,7 +520,9 @@ def update_grid(grid):
                     if not (i == 0 and j == 0)
                 )
 
-                if has_pulsar_neighbor:
+                if has_nexus_neighbor and random.random() < 0.05:
+                    new_grid[y][x] = 17 # Void crystallizes into Nexus
+                elif has_pulsar_neighbor:
                     new_grid[y][x] = random.choice([0, 1, 2, 3, 4])
                 elif has_wormhole_neighbor:
                     r = random.random()
@@ -547,6 +579,12 @@ def update_grid(grid):
                 continue
 
             # --- NORMAL STATES 0-4: RPSLK ---
+            has_nexus_neighbor = any(
+                grid[(y + i) % height][(x + j) % width] == 17
+                for i in range(-1, 2)
+                for j in range(-1, 2)
+                if not (i == 0 and j == 0)
+            )
             # Check environmental hazards first
             # 1. Supernova neighbor: completely destroys normal states
             has_state_7_neighbor = any(
@@ -555,7 +593,7 @@ def update_grid(grid):
                 for j in range(-1, 2)
                 if not (i == 0 and j == 0)
             )
-            if has_state_7_neighbor:
+            if has_state_7_neighbor and not has_nexus_neighbor:
                 new_grid[y][x] = 6
                 continue
 
@@ -566,7 +604,7 @@ def update_grid(grid):
                 for j in range(-1, 2)
                 if not (i == 0 and j == 0)
             )
-            if has_state_5_neighbor:
+            if has_state_5_neighbor and not has_nexus_neighbor:
                 new_grid[y][x] = 5
                 continue
 
@@ -614,9 +652,9 @@ def generate_html(grid):
     </style>
 </head>
 <body>
-    <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, Jaeger, Mothra, Glitch, MechaGodzilla & Omega</h2>
+    <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, Jaeger, Mothra, Glitch, MechaGodzilla, Omega & Nexus</h2>
     <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
-    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega</p>
+    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega | Light Cyan: Nexus</p>
 
     <script>
         const canvas = document.getElementById('simCanvas');
@@ -640,7 +678,8 @@ def generate_html(grid):
             13: '#39ff14', // Glitch
             14: '#00bfff', // Anti-Virus
             15: '#e6005c', // MechaGodzilla
-            16: '#8a2be2' // Omega
+            16: '#8a2be2', // Omega
+            17: '#e0ffff' // Nexus
         }};
 
         const grid = {json.dumps(grid)};
