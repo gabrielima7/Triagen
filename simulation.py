@@ -133,6 +133,7 @@ def update_grid(grid):
     omegas = []
     reapers = []
     phoenixes = []
+    yggdrasils = []
     for y in range(height):
         for x in range(width):
             state = grid[y][x]
@@ -156,6 +157,8 @@ def update_grid(grid):
                 reapers.append((y, x))
             elif state == 19:
                 phoenixes.append((y, x))
+            elif state == 20:
+                yggdrasils.append((y, x))
 
     # Ensure at least one Godzilla, Jaeger, and Mothra are on the board
     if not godzillas:
@@ -211,7 +214,7 @@ def update_grid(grid):
         for dy, dx in directions:
             ny, nx = (gy + dy) % height, (gx + dx) % width
             # Valid target if it does not contain a Godzilla in the current grid and is not targeted by another, and is not a Nexus
-            if grid[ny][nx] != 10 and grid[ny][nx] != 17 and (ny, nx) not in godzilla_targets:
+            if grid[ny][nx] != 10 and grid[ny][nx] != 17 and grid[ny][nx] != 20 and (ny, nx) not in godzilla_targets:
                 godzilla_moves[(gy, gx)] = (ny, nx)
                 godzilla_targets.add((ny, nx))
                 moved = True
@@ -243,7 +246,7 @@ def update_grid(grid):
                 elif gx < jx: dx = -1
 
                 ny, nx = (jy + dy) % height, (jx + dx) % width
-                if grid[ny][nx] != 11 and grid[ny][nx] != 17 and (ny, nx) not in jaeger_targets:
+                if grid[ny][nx] != 11 and grid[ny][nx] != 17 and grid[ny][nx] != 20 and (ny, nx) not in jaeger_targets:
                     jaeger_targets.add((ny, nx))
                 else:
                     jaeger_targets.add((jy, jx))
@@ -261,7 +264,7 @@ def update_grid(grid):
         for dy, dx in directions:
             ny, nx = (my + dy) % height, (mx + dx) % width
             # Valid target if it does not contain a Mothra in the current grid and is not targeted by another, and is not a Nexus
-            if grid[ny][nx] != 12 and grid[ny][nx] != 17 and (ny, nx) not in mothra_targets:
+            if grid[ny][nx] != 12 and grid[ny][nx] != 17 and grid[ny][nx] != 20 and (ny, nx) not in mothra_targets:
                 mothra_targets.add((ny, nx))
                 moved = True
                 break
@@ -292,7 +295,7 @@ def update_grid(grid):
                 elif mx < mgx: dx = -1
 
                 ny, nx = (mgy + dy) % height, (mgx + dx) % width
-                if grid[ny][nx] != 15 and grid[ny][nx] != 17 and (ny, nx) not in mechagodzilla_targets:
+                if grid[ny][nx] != 15 and grid[ny][nx] != 17 and grid[ny][nx] != 20 and (ny, nx) not in mechagodzilla_targets:
                     mechagodzilla_targets.add((ny, nx))
                 else:
                     mechagodzilla_targets.add((mgy, mgx))
@@ -305,7 +308,7 @@ def update_grid(grid):
             moved = False
             for dy, dx in directions:
                 ny, nx = (mgy + dy) % height, (mgx + dx) % width
-                if grid[ny][nx] != 15 and grid[ny][nx] != 17 and (ny, nx) not in mechagodzilla_targets:
+                if grid[ny][nx] != 15 and grid[ny][nx] != 17 and grid[ny][nx] != 20 and (ny, nx) not in mechagodzilla_targets:
                     mechagodzilla_targets.add((ny, nx))
                     moved = True
                     break
@@ -322,7 +325,7 @@ def update_grid(grid):
         for dy, dx in directions:
             ny, nx = (ry + dy) % height, (rx + dx) % width
             # Reapers can move anywhere except where another Reaper is targeting
-            if grid[ny][nx] != 18 and (ny, nx) not in reaper_targets:
+            if grid[ny][nx] != 18 and grid[ny][nx] != 20 and (ny, nx) not in reaper_targets:
                 reaper_targets.add((ny, nx))
                 moved = True
                 break
@@ -336,7 +339,7 @@ def update_grid(grid):
         for dy, dx in directions:
             ny, nx = (oy + dy) % height, (ox + dx) % width
             # Valid target if it does not contain an Omega in the current grid and is not targeted by another, and is not a Nexus
-            if grid[ny][nx] != 16 and grid[ny][nx] != 17 and (ny, nx) not in omega_targets:
+            if grid[ny][nx] != 16 and grid[ny][nx] != 17 and grid[ny][nx] != 20 and (ny, nx) not in omega_targets:
                 omega_targets.add((ny, nx))
                 moved = True
                 break
@@ -365,7 +368,7 @@ def update_grid(grid):
                 elif rx < px: dx = -1
 
                 ny, nx = (py + dy) % height, (px + dx) % width
-                if grid[ny][nx] != 19 and (ny, nx) not in phoenix_targets:
+                if grid[ny][nx] != 19 and grid[ny][nx] != 20 and (ny, nx) not in phoenix_targets:
                     phoenix_targets.add((ny, nx))
                 else:
                     phoenix_targets.add((py, px))
@@ -378,7 +381,7 @@ def update_grid(grid):
             moved = False
             for dy, dx in directions:
                 ny, nx = (py + dy) % height, (px + dx) % width
-                if grid[ny][nx] != 19 and (ny, nx) not in phoenix_targets:
+                if grid[ny][nx] != 19 and grid[ny][nx] != 20 and (ny, nx) not in phoenix_targets:
                     phoenix_targets.add((ny, nx))
                     moved = True
                     break
@@ -518,10 +521,36 @@ def update_grid(grid):
 
             # --- STATE 17: NEXUS ---
             if current_state == 17:
-                if random.random() < 0.001: # 0.1% chance to decay
+                nexus_neighbors = sum(
+                    1 for i in range(-1, 2) for j in range(-1, 2)
+                    if not (i == 0 and j == 0) and grid[(y + i) % height][(x + j) % width] == 17
+                )
+                if nexus_neighbors == 8 and random.random() < 0.01:
+                    new_grid[y][x] = 20 # Crystallizes into Yggdrasil
+                elif random.random() < 0.001: # 0.1% chance to decay
                     new_grid[y][x] = 6
                 else:
                     new_grid[y][x] = 17
+                continue
+
+            # --- STATE 20: YGGDRASIL ---
+            if current_state == 20:
+                if len(yggdrasils) > 5 and random.random() < 0.05:
+                    new_grid[y][x] = 7 # Decays to Supernova
+                else:
+                    new_grid[y][x] = 20
+                    if random.random() < 0.05:
+                        # Convert random adjacent Void or RPSLK cell to Nexus
+                        neighbors = []
+                        for i in range(-1, 2):
+                            for j in range(-1, 2):
+                                if i == 0 and j == 0: continue
+                                ny, nx = (y + i) % height, (x + j) % width
+                                if grid[ny][nx] in [6, 0, 1, 2, 3, 4]:
+                                    neighbors.append((ny, nx))
+                        if neighbors:
+                            ty, tx = random.choice(neighbors)
+                            new_grid[ty][tx] = 17
                 continue
 
             # --- STATE 14: ANTI-VIRUS ---
@@ -758,9 +787,9 @@ def generate_html(grid):
     </style>
 </head>
 <body>
-    <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, Jaeger, Mothra, Glitch, MechaGodzilla, Omega, Nexus & Phoenix</h2>
+    <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, Jaeger, Mothra, Glitch, MechaGodzilla, Omega, Nexus, Phoenix & Yggdrasil</h2>
     <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
-    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega | Light Cyan: Nexus | Dark Gray: Reaper | Coral: Phoenix</p>
+    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega | Light Cyan: Nexus | Dark Gray: Reaper | Coral: Phoenix | Forest Green: Yggdrasil</p>
 
     <script>
         const canvas = document.getElementById('simCanvas');
@@ -787,7 +816,8 @@ def generate_html(grid):
             16: '#8a2be2', // Omega
             17: '#e0ffff', // Nexus
             18: '#555555', // Reaper
-            19: '#ff7f50' // Phoenix
+            19: '#ff7f50', // Phoenix
+            20: '#228b22'  // Yggdrasil
         }};
 
         const grid = {json.dumps(grid)};
