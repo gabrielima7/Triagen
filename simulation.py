@@ -10,9 +10,9 @@ def create_grid(width, height, randomize=False):
     """Creates a 2D grid, optionally filled with random states."""
     grid = []
     if randomize:
-        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
-        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.45%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%)
-        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.45, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]
+        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.45%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%)
+        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.45, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]
         for _ in range(height):
             row = random.choices(states, weights=weights, k=width)
             grid.append(row)
@@ -132,6 +132,7 @@ def update_grid(grid):
     mechagodzillas = []
     omegas = []
     reapers = []
+    phoenixes = []
     for y in range(height):
         for x in range(width):
             state = grid[y][x]
@@ -153,6 +154,8 @@ def update_grid(grid):
                 omegas.append((y, x))
             elif state == 18:
                 reapers.append((y, x))
+            elif state == 19:
+                phoenixes.append((y, x))
 
     # Ensure at least one Godzilla, Jaeger, and Mothra are on the board
     if not godzillas:
@@ -187,6 +190,16 @@ def update_grid(grid):
         mothras.append((ry, rx))
         # Place the newly spawned Mothra in the new grid
         new_grid[ry][rx] = 12
+
+    # If reapers exist but no phoenixes, spawn a phoenix to hunt it
+    if reapers and not phoenixes:
+        if voids:
+            ry, rx = random.choice(voids)
+            voids.remove((ry, rx))
+        else:
+            ry, rx = random.randint(0, height - 1), random.randint(0, width - 1)
+        phoenixes.append((ry, rx))
+        new_grid[ry][rx] = 19
 
     # 2. RESOLVE GODZILLA MOVEMENT (preventing overlap and blocking, O(G) where G is number of Godzillas)
     godzilla_moves = {}   # maps (src_y, src_x) -> (dest_y, dest_x)
@@ -330,6 +343,48 @@ def update_grid(grid):
         if not moved:
             omega_targets.add((oy, ox))
 
+    phoenix_targets = set()
+    for py, px in phoenixes:
+        if reapers:
+            # Find nearest Reaper
+            nearest_r = None
+            min_dist = float('inf')
+            for ry, rx in reapers:
+                dist = abs(ry - py) + abs(rx - px)
+                if dist < min_dist:
+                    min_dist = dist
+                    nearest_r = (ry, rx)
+
+            if nearest_r:
+                ry, rx = nearest_r
+                # Move one step towards Reaper
+                dy, dx = 0, 0
+                if ry > py: dy = 1
+                elif ry < py: dy = -1
+                elif rx > px: dx = 1
+                elif rx < px: dx = -1
+
+                ny, nx = (py + dy) % height, (px + dx) % width
+                if grid[ny][nx] != 19 and (ny, nx) not in phoenix_targets:
+                    phoenix_targets.add((ny, nx))
+                else:
+                    phoenix_targets.add((py, px))
+            else:
+                phoenix_targets.add((py, px))
+        else:
+            # Reapers gone, move randomly
+            directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+            random.shuffle(directions)
+            moved = False
+            for dy, dx in directions:
+                ny, nx = (py + dy) % height, (px + dx) % width
+                if grid[ny][nx] != 19 and (ny, nx) not in phoenix_targets:
+                    phoenix_targets.add((ny, nx))
+                    moved = True
+                    break
+            if not moved:
+                phoenix_targets.add((py, px))
+
     # 3. COLLECT WORMHOLE HORIZONS (Normal states adjacent to any Wormhole)
     wormhole_horizons = []
     for wy, wx in wormholes:
@@ -342,7 +397,7 @@ def update_grid(grid):
                     wormhole_horizons.append(neighbor_state)
 
     # 4. PRE-DETERMINE WORMHOLE QUANTUM TELEPORTATION TARGETS (to prevent cell overwrites)
-    available_voids = [v for v in voids if v not in godzilla_targets and v not in mothra_targets and v not in jaeger_targets and v not in mechagodzilla_targets and v not in omega_targets and v not in reaper_targets]
+    available_voids = [v for v in voids if v not in godzilla_targets and v not in mothra_targets and v not in jaeger_targets and v not in mechagodzilla_targets and v not in omega_targets and v not in reaper_targets and v not in phoenix_targets]
     teleportation_targets = {}
     for wy, wx in wormholes:
         if available_voids:
@@ -354,6 +409,17 @@ def update_grid(grid):
     # 5. MAIN CELLULAR AUTOMATON UPDATE PASS
     for y in range(height):
         for x in range(width):
+            # Check for Phoenix-Reaper collisions
+            if (y, x) in phoenix_targets and (y, x) in reaper_targets:
+                # Mutual destruction into a Nexus
+                new_grid[y][x] = 17
+                continue
+
+            # Check if this cell is a target of a Phoenix move
+            if (y, x) in phoenix_targets:
+                new_grid[y][x] = 19
+                continue
+
             # Check if this cell is a target of a Reaper move (Reaper destroys everything, including Nexus)
             if (y, x) in reaper_targets:
                 new_grid[y][x] = 18
@@ -423,6 +489,14 @@ def update_grid(grid):
             # Check if this cell previously had a Mothra (it has moved away leaving Life)
             if grid[y][x] == 12:
                 new_grid[y][x] = random.choice([0, 1, 2, 3, 4])
+                continue
+
+            # Check if this cell previously had a Phoenix (it has moved away leaving a Pulsar or Void)
+            if grid[y][x] == 19:
+                if random.random() < 0.10:
+                    new_grid[y][x] = 8
+                else:
+                    new_grid[y][x] = 6
                 continue
 
             # Check if this cell previously had a Reaper (it leaves behind a Void)
@@ -572,6 +646,8 @@ def update_grid(grid):
                         new_grid[y][x] = 14
                     elif rand_val < 0.0515:
                         new_grid[y][x] = 18
+                    elif rand_val < 0.052:
+                        new_grid[y][x] = 19
                     else:
                         new_grid[y][x] = 6
                 continue
@@ -682,9 +758,9 @@ def generate_html(grid):
     </style>
 </head>
 <body>
-    <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, Jaeger, Mothra, Glitch, MechaGodzilla, Omega & Nexus</h2>
+    <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, Jaeger, Mothra, Glitch, MechaGodzilla, Omega, Nexus & Phoenix</h2>
     <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
-    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega | Light Cyan: Nexus | Dark Gray: Reaper</p>
+    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega | Light Cyan: Nexus | Dark Gray: Reaper | Coral: Phoenix</p>
 
     <script>
         const canvas = document.getElementById('simCanvas');
@@ -710,7 +786,8 @@ def generate_html(grid):
             15: '#e6005c', // MechaGodzilla
             16: '#8a2be2', // Omega
             17: '#e0ffff', // Nexus
-            18: '#555555' // Reaper
+            18: '#555555', // Reaper
+            19: '#ff7f50' // Phoenix
         }};
 
         const grid = {json.dumps(grid)};
