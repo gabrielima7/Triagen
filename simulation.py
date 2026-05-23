@@ -10,9 +10,9 @@ def create_grid(width, height, randomize=False):
     """Creates a 2D grid, optionally filled with random states."""
     grid = []
     if randomize:
-        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
-        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.45%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%)
-        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.45, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]
+        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
+        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.45%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%), Yggdrasil (0.05%), Nidhogg (0.05%)
+        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.45, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]
         for _ in range(height):
             row = random.choices(states, weights=weights, k=width)
             grid.append(row)
@@ -134,6 +134,7 @@ def update_grid(grid):
     reapers = []
     phoenixes = []
     yggdrasils = []
+    nidhoggs = []
     for y in range(height):
         for x in range(width):
             state = grid[y][x]
@@ -159,6 +160,8 @@ def update_grid(grid):
                 phoenixes.append((y, x))
             elif state == 20:
                 yggdrasils.append((y, x))
+            elif state == 21:
+                nidhoggs.append((y, x))
 
     # Ensure at least one Godzilla, Jaeger, and Mothra are on the board
     if not godzillas:
@@ -203,6 +206,16 @@ def update_grid(grid):
             ry, rx = random.randint(0, height - 1), random.randint(0, width - 1)
         phoenixes.append((ry, rx))
         new_grid[ry][rx] = 19
+
+    # Spawn Nidhogg to hunt Yggdrasil with a 20% chance if none exist
+    if yggdrasils and not nidhoggs and random.random() < 0.20:
+        if voids:
+            ry, rx = random.choice(voids)
+            voids.remove((ry, rx))
+        else:
+            ry, rx = random.randint(0, height - 1), random.randint(0, width - 1)
+        nidhoggs.append((ry, rx))
+        new_grid[ry][rx] = 21
 
     # 2. RESOLVE GODZILLA MOVEMENT (preventing overlap and blocking, O(G) where G is number of Godzillas)
     godzilla_moves = {}   # maps (src_y, src_x) -> (dest_y, dest_x)
@@ -388,6 +401,49 @@ def update_grid(grid):
             if not moved:
                 phoenix_targets.add((py, px))
 
+    # 2.8 RESOLVE NIDHOGG MOVEMENT (seeking nearest Yggdrasil)
+    nidhogg_targets = set()
+    for ny_coord, nx_coord in nidhoggs:
+        if yggdrasils:
+            # Find nearest Yggdrasil
+            nearest_y = None
+            min_dist = float('inf')
+            for yy, yx in yggdrasils:
+                dist = abs(yy - ny_coord) + abs(yx - nx_coord)
+                if dist < min_dist:
+                    min_dist = dist
+                    nearest_y = (yy, yx)
+
+            if nearest_y:
+                yy, yx = nearest_y
+                # Move one step towards Yggdrasil
+                dy, dx = 0, 0
+                if yy > ny_coord: dy = 1
+                elif yy < ny_coord: dy = -1
+                elif yx > nx_coord: dx = 1
+                elif yx < nx_coord: dx = -1
+
+                ny, nx = (ny_coord + dy) % height, (nx_coord + dx) % width
+                if grid[ny][nx] != 21 and grid[ny][nx] != 17 and (ny, nx) not in nidhogg_targets:
+                    nidhogg_targets.add((ny, nx))
+                else:
+                    nidhogg_targets.add((ny_coord, nx_coord))
+            else:
+                nidhogg_targets.add((ny_coord, nx_coord))
+        else:
+            # Yggdrasils gone, move randomly
+            directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+            random.shuffle(directions)
+            moved = False
+            for dy, dx in directions:
+                ny, nx = (ny_coord + dy) % height, (nx_coord + dx) % width
+                if grid[ny][nx] != 21 and grid[ny][nx] != 17 and (ny, nx) not in nidhogg_targets:
+                    nidhogg_targets.add((ny, nx))
+                    moved = True
+                    break
+            if not moved:
+                nidhogg_targets.add((ny_coord, nx_coord))
+
     # 3. COLLECT WORMHOLE HORIZONS (Normal states adjacent to any Wormhole)
     wormhole_horizons = []
     for wy, wx in wormholes:
@@ -400,7 +456,7 @@ def update_grid(grid):
                     wormhole_horizons.append(neighbor_state)
 
     # 4. PRE-DETERMINE WORMHOLE QUANTUM TELEPORTATION TARGETS (to prevent cell overwrites)
-    available_voids = [v for v in voids if v not in godzilla_targets and v not in mothra_targets and v not in jaeger_targets and v not in mechagodzilla_targets and v not in omega_targets and v not in reaper_targets and v not in phoenix_targets]
+    available_voids = [v for v in voids if v not in godzilla_targets and v not in mothra_targets and v not in jaeger_targets and v not in mechagodzilla_targets and v not in omega_targets and v not in reaper_targets and v not in phoenix_targets and v not in nidhogg_targets]
     teleportation_targets = {}
     for wy, wx in wormholes:
         if available_voids:
@@ -421,6 +477,11 @@ def update_grid(grid):
             # Check if this cell is a target of a Phoenix move
             if (y, x) in phoenix_targets:
                 new_grid[y][x] = 19
+                continue
+
+            # Check if this cell is a target of a Nidhogg move (Nidhogg eats Yggdrasils)
+            if (y, x) in nidhogg_targets:
+                new_grid[y][x] = 21
                 continue
 
             # Check if this cell is a target of a Reaper move (Reaper destroys everything, including Nexus)
@@ -510,6 +571,14 @@ def update_grid(grid):
             # Check if this cell previously had an Omega (it leaves behind a Black Hole)
             if grid[y][x] == 16:
                 new_grid[y][x] = 5
+                continue
+
+            # Check if this cell previously had a Nidhogg (it leaves behind a Void or Glitch)
+            if grid[y][x] == 21:
+                if random.random() < 0.10:
+                    new_grid[y][x] = 13
+                else:
+                    new_grid[y][x] = 6
                 continue
 
             # Check if this cell receives a quantum teleported state
@@ -817,7 +886,8 @@ def generate_html(grid):
             17: '#e0ffff', // Nexus
             18: '#555555', // Reaper
             19: '#ff7f50', // Phoenix
-            20: '#228b22'  // Yggdrasil
+            20: '#228b22', // Yggdrasil
+            21: '#4b0082'  // Nidhogg
         }};
 
         const grid = {json.dumps(grid)};
