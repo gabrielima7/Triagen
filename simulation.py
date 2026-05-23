@@ -10,9 +10,9 @@ def create_grid(width, height, randomize=False):
     """Creates a 2D grid, optionally filled with random states."""
     grid = []
     if randomize:
-        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
-        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.45%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%)
-        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.45, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]
+        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
+        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.45%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%), Yggdrasil (0%), Nidhogg (0.01%)
+        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.45, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.0, 0.01]
         for _ in range(height):
             row = random.choices(states, weights=weights, k=width)
             grid.append(row)
@@ -75,7 +75,7 @@ def save_state(grid):
 
 def print_grid(grid):
     """Prints the grid to the console."""
-    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@", 9: "W", 10: "G", 11: "J", 12: "M", 13: "X", 14: "A", 15: "Z", 16: "O", 17: "N", 18: "D"}
+    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@", 9: "W", 10: "G", 11: "J", 12: "M", 13: "X", 14: "A", 15: "Z", 16: "O", 17: "N", 18: "D", 20: "Y", 21: "H"}
     for row in grid:
         print(" ".join(chars.get(cell, "?") for cell in row))
     print()
@@ -134,6 +134,7 @@ def update_grid(grid):
     reapers = []
     phoenixes = []
     yggdrasils = []
+    nidhoggs = []
     for y in range(height):
         for x in range(width):
             state = grid[y][x]
@@ -159,6 +160,8 @@ def update_grid(grid):
                 phoenixes.append((y, x))
             elif state == 20:
                 yggdrasils.append((y, x))
+            elif state == 21:
+                nidhoggs.append((y, x))
 
     # Ensure at least one Godzilla, Jaeger, and Mothra are on the board
     if not godzillas:
@@ -388,6 +391,49 @@ def update_grid(grid):
             if not moved:
                 phoenix_targets.add((py, px))
 
+    # 2.12 RESOLVE NIDHOGG MOVEMENT (seeking nearest Yggdrasil)
+    nidhogg_targets = set()
+    for ny_pos, nx_pos in nidhoggs:
+        if yggdrasils:
+            # Find nearest Yggdrasil
+            nearest_y = None
+            min_dist = float('inf')
+            for yy, yx in yggdrasils:
+                dist = abs(yy - ny_pos) + abs(yx - nx_pos)
+                if dist < min_dist:
+                    min_dist = dist
+                    nearest_y = (yy, yx)
+
+            if nearest_y:
+                yy, yx = nearest_y
+                # Move one step towards Yggdrasil
+                dy, dx = 0, 0
+                if yy > ny_pos: dy = 1
+                elif yy < ny_pos: dy = -1
+                elif yx > nx_pos: dx = 1
+                elif yx < nx_pos: dx = -1
+
+                ny_next, nx_next = (ny_pos + dy) % height, (nx_pos + dx) % width
+                if grid[ny_next][nx_next] != 21 and grid[ny_next][nx_next] != 17 and (ny_next, nx_next) not in nidhogg_targets:
+                    nidhogg_targets.add((ny_next, nx_next))
+                else:
+                    nidhogg_targets.add((ny_pos, nx_pos))
+            else:
+                nidhogg_targets.add((ny_pos, nx_pos))
+        else:
+            # Move randomly
+            directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+            random.shuffle(directions)
+            moved = False
+            for dy, dx in directions:
+                ny_next, nx_next = (ny_pos + dy) % height, (nx_pos + dx) % width
+                if grid[ny_next][nx_next] != 21 and grid[ny_next][nx_next] != 17 and (ny_next, nx_next) not in nidhogg_targets:
+                    nidhogg_targets.add((ny_next, nx_next))
+                    moved = True
+                    break
+            if not moved:
+                nidhogg_targets.add((ny_pos, nx_pos))
+
     # 3. COLLECT WORMHOLE HORIZONS (Normal states adjacent to any Wormhole)
     wormhole_horizons = []
     for wy, wx in wormholes:
@@ -400,7 +446,7 @@ def update_grid(grid):
                     wormhole_horizons.append(neighbor_state)
 
     # 4. PRE-DETERMINE WORMHOLE QUANTUM TELEPORTATION TARGETS (to prevent cell overwrites)
-    available_voids = [v for v in voids if v not in godzilla_targets and v not in mothra_targets and v not in jaeger_targets and v not in mechagodzilla_targets and v not in omega_targets and v not in reaper_targets and v not in phoenix_targets]
+    available_voids = [v for v in voids if v not in godzilla_targets and v not in mothra_targets and v not in jaeger_targets and v not in mechagodzilla_targets and v not in omega_targets and v not in reaper_targets and v not in phoenix_targets and v not in nidhogg_targets]
     teleportation_targets = {}
     for wy, wx in wormholes:
         if available_voids:
@@ -412,6 +458,11 @@ def update_grid(grid):
     # 5. MAIN CELLULAR AUTOMATON UPDATE PASS
     for y in range(height):
         for x in range(width):
+            # Check if this cell is a target of a Nidhogg move (Nidhogg destroys everything here)
+            if (y, x) in nidhogg_targets:
+                new_grid[y][x] = 21
+                continue
+
             # Check for Phoenix-Reaper collisions
             if (y, x) in phoenix_targets and (y, x) in reaper_targets:
                 # Mutual destruction into a Nexus
@@ -504,6 +555,11 @@ def update_grid(grid):
 
             # Check if this cell previously had a Reaper (it leaves behind a Void)
             if grid[y][x] == 18:
+                new_grid[y][x] = 6
+                continue
+
+            # Check if this cell previously had a Nidhogg (it leaves behind a Void)
+            if grid[y][x] == 21:
                 new_grid[y][x] = 6
                 continue
 
@@ -787,9 +843,9 @@ def generate_html(grid):
     </style>
 </head>
 <body>
-    <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, Jaeger, Mothra, Glitch, MechaGodzilla, Omega, Nexus, Phoenix & Yggdrasil</h2>
+    <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, Jaeger, Mothra, Glitch, MechaGodzilla, Omega, Nexus, Phoenix, Yggdrasil & Nidhogg</h2>
     <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
-    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega | Light Cyan: Nexus | Dark Gray: Reaper | Coral: Phoenix | Forest Green: Yggdrasil</p>
+    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega | Light Cyan: Nexus | Dark Gray: Reaper | Coral: Phoenix | Forest Green: Yggdrasil | Dark Red: Nidhogg</p>
 
     <script>
         const canvas = document.getElementById('simCanvas');
@@ -817,7 +873,8 @@ def generate_html(grid):
             17: '#e0ffff', // Nexus
             18: '#555555', // Reaper
             19: '#ff7f50', // Phoenix
-            20: '#228b22'  // Yggdrasil
+            20: '#228b22', // Yggdrasil
+            21: '#8b0000'  // Nidhogg
         }};
 
         const grid = {json.dumps(grid)};
