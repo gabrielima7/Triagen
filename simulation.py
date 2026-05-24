@@ -10,9 +10,9 @@ def create_grid(width, height, randomize=False):
     """Creates a 2D grid, optionally filled with random states."""
     grid = []
     if randomize:
-        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
-        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.45%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%), Yggdrasil (0%), Nidhogg (0.01%)
-        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.45, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.0, 0.01]
+        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
+        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.44%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%), Yggdrasil (0%), Nidhogg (0.01%), Pandora (0.01%)
+        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.44, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.0, 0.01, 0.01]
         for _ in range(height):
             row = random.choices(states, weights=weights, k=width)
             grid.append(row)
@@ -135,6 +135,7 @@ def update_grid(grid):
     phoenixes = []
     yggdrasils = []
     nidhoggs = []
+    pandoras = []
     for y in range(height):
         for x in range(width):
             state = grid[y][x]
@@ -162,6 +163,8 @@ def update_grid(grid):
                 yggdrasils.append((y, x))
             elif state == 21:
                 nidhoggs.append((y, x))
+            elif state == 22:
+                pandoras.append((y, x))
 
     # Ensure at least one Godzilla, Jaeger, and Mothra are on the board
     if not godzillas:
@@ -445,8 +448,26 @@ def update_grid(grid):
                 if neighbor_state in [0, 1, 2, 3, 4]:
                     wormhole_horizons.append(neighbor_state)
 
+    # 3.5 RESOLVE PANDORA'S BOX OPENING
+    pandora_explosions = {}
+    for py, px in pandoras:
+        if ((py, px) in godzilla_targets or (py, px) in jaeger_targets or
+            (py, px) in mothra_targets or (py, px) in mechagodzilla_targets or
+            (py, px) in omega_targets or (py, px) in reaper_targets or
+            (py, px) in phoenix_targets or (py, px) in nidhogg_targets):
+
+            # Pandora is touched! Unleash chaos in a 5x5 area
+            for i in range(-2, 3):
+                for j in range(-2, 3):
+                    ey, ex = (py + i) % height, (px + j) % width
+                    if i == 0 and j == 0:
+                        pandora_explosions[(ey, ex)] = 9 # Pandora becomes a Wormhole
+                    else:
+                        # Full randomization of all states including Pandora
+                        pandora_explosions[(ey, ex)] = random.randint(0, 22)
+
     # 4. PRE-DETERMINE WORMHOLE QUANTUM TELEPORTATION TARGETS (to prevent cell overwrites)
-    available_voids = [v for v in voids if v not in godzilla_targets and v not in mothra_targets and v not in jaeger_targets and v not in mechagodzilla_targets and v not in omega_targets and v not in reaper_targets and v not in phoenix_targets and v not in nidhogg_targets]
+    available_voids = [v for v in voids if v not in godzilla_targets and v not in mothra_targets and v not in jaeger_targets and v not in mechagodzilla_targets and v not in omega_targets and v not in reaper_targets and v not in phoenix_targets and v not in nidhogg_targets and v not in pandora_explosions]
     teleportation_targets = {}
     for wy, wx in wormholes:
         if available_voids:
@@ -458,6 +479,11 @@ def update_grid(grid):
     # 5. MAIN CELLULAR AUTOMATON UPDATE PASS
     for y in range(height):
         for x in range(width):
+            # Check if this cell is caught in a Pandora's Box explosion
+            if (y, x) in pandora_explosions:
+                new_grid[y][x] = pandora_explosions[(y, x)]
+                continue
+
             # Check if this cell is a target of a Nidhogg move (Nidhogg destroys everything here)
             if (y, x) in nidhogg_targets:
                 new_grid[y][x] = 21
@@ -574,6 +600,12 @@ def update_grid(grid):
                 continue
 
             current_state = grid[y][x]
+
+            # --- STATE 22: PANDORA ---
+            if current_state == 22:
+                # Pandora remains dormant unless touched
+                new_grid[y][x] = 22
+                continue
 
             # --- STATE 17: NEXUS ---
             if current_state == 17:
@@ -733,6 +765,8 @@ def update_grid(grid):
                         new_grid[y][x] = 18
                     elif rand_val < 0.052:
                         new_grid[y][x] = 19
+                    elif rand_val < 0.0521:
+                        new_grid[y][x] = 22
                     else:
                         new_grid[y][x] = 6
                 continue
@@ -843,9 +877,9 @@ def generate_html(grid):
     </style>
 </head>
 <body>
-    <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, Jaeger, Mothra, Glitch, MechaGodzilla, Omega, Nexus, Phoenix, Yggdrasil & Nidhogg</h2>
+    <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, Jaeger, Mothra, Glitch, MechaGodzilla, Omega, Nexus, Phoenix, Yggdrasil, Nidhogg & Pandora</h2>
     <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
-    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega | Light Cyan: Nexus | Dark Gray: Reaper | Coral: Phoenix | Forest Green: Yggdrasil | Dark Red: Nidhogg</p>
+    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega | Light Cyan: Nexus | Dark Gray: Reaper | Coral: Phoenix | Forest Green: Yggdrasil | Dark Red: Nidhogg | Deep Pink: Pandora</p>
 
     <script>
         const canvas = document.getElementById('simCanvas');
@@ -874,7 +908,8 @@ def generate_html(grid):
             18: '#555555', // Reaper
             19: '#ff7f50', // Phoenix
             20: '#228b22', // Yggdrasil
-            21: '#8b0000'  // Nidhogg
+            21: '#8b0000', // Nidhogg
+            22: '#ff1493'  // Pandora
         }};
 
         const grid = {json.dumps(grid)};
