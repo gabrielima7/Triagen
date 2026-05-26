@@ -10,9 +10,9 @@ def create_grid(width, height, randomize=False):
     """Creates a 2D grid, optionally filled with random states."""
     grid = []
     if randomize:
-        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
-        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.43%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%), Yggdrasil (0%), Nidhogg (0.01%), Pandora (0.01%), Chronos (0.01%), Paradox (0.01%), Singularity (0.0001%)
-        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.4299, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.0, 0.01, 0.01, 0.01, 0.01, 0.0001]
+        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
+        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.43%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%), Yggdrasil (0%), Nidhogg (0.01%), Pandora (0.01%), Chronos (0.01%), Paradox (0.01%), Singularity (0.0001%), Conway (0.0001%)
+        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.4299, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.0, 0.01, 0.01, 0.01, 0.01, 0.0001, 0.0001]
         for _ in range(height):
             row = random.choices(states, weights=weights, k=width)
             grid.append(row)
@@ -75,7 +75,7 @@ def save_state(grid):
 
 def print_grid(grid):
     """Prints the grid to the console."""
-    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@", 9: "W", 10: "G", 11: "J", 12: "M", 13: "X", 14: "A", 15: "Z", 16: "O", 17: "N", 18: "D", 20: "Y", 21: "H", 25: "I"}
+    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@", 9: "W", 10: "G", 11: "J", 12: "M", 13: "X", 14: "A", 15: "Z", 16: "O", 17: "N", 18: "D", 20: "Y", 21: "H", 25: "I", 26: "C"}
     for row in grid:
         print(" ".join(chars.get(cell, "?") for cell in row))
     print()
@@ -139,6 +139,7 @@ def update_grid(grid):
     chronos = []
     paradoxes = []
     singularities = []
+    conways = []
     for y in range(height):
         for x in range(width):
             state = grid[y][x]
@@ -174,6 +175,17 @@ def update_grid(grid):
                 paradoxes.append((y, x))
             elif state == 25:
                 singularities.append((y, x))
+            elif state == 26:
+                conways.append((y, x))
+
+    conway_seeds = set()
+    if len(conways) < 15 and random.random() < 0.10:
+        if voids:
+            cy, cx = random.choice(voids)
+            glider_offsets = [(0, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
+            for dy, dx in glider_offsets:
+                ny, nx = (cy + dy) % height, (cx + dx) % width
+                conway_seeds.add((ny, nx))
 
     # BIG BANG CONDITION: If Singularity has consumed enough of the board, trigger universal reset
     if len(singularities) > 100:
@@ -603,6 +615,10 @@ def update_grid(grid):
                 new_grid[y][x] = pandora_explosions[(y, x)]
                 continue
 
+            if (y, x) in conway_seeds:
+                new_grid[y][x] = 26
+                continue
+
             # Check if this cell is a target of a Nidhogg move (Nidhogg destroys everything here)
             if (y, x) in nidhogg_targets:
                 new_grid[y][x] = 21
@@ -849,6 +865,16 @@ def update_grid(grid):
 
             # --- STATE 6: VOID ---
             elif current_state == 6:
+                # count 26 neighbors
+                conway_neighbors = sum(
+                    1 for i in range(-1, 2)
+                    for j in range(-1, 2)
+                    if not (i == 0 and j == 0) and grid[(y + i) % height][(x + j) % width] == 26
+                )
+                if conway_neighbors == 3:
+                    new_grid[y][x] = 26
+                    continue
+
                 has_nexus_neighbor = any(
                     grid[(y + i) % height][(x + j) % width] == 17
                     for i in range(-1, 2)
@@ -933,6 +959,19 @@ def update_grid(grid):
                     new_grid[y][x] = 6 # Wormhole collapses into Void
                 else:
                     new_grid[y][x] = 9
+                continue
+
+            # --- STATE 26: CONWAY ---
+            elif current_state == 26:
+                conway_neighbors = sum(
+                    1 for i in range(-1, 2)
+                    for j in range(-1, 2)
+                    if not (i == 0 and j == 0) and grid[(y + i) % height][(x + j) % width] == 26
+                )
+                if conway_neighbors in [2, 3]:
+                    new_grid[y][x] = 26
+                else:
+                    new_grid[y][x] = 6 # Decays to Void
                 continue
 
             # --- NORMAL STATES 0-4: RPSLK ---
@@ -1044,7 +1083,8 @@ def generate_html(grid):
             22: '#ff1493', // Pandora
             23: '#4169e1', // Chronos
             24: '#9400d3', // Paradox
-            25: '#ffffff'  // Singularity
+            25: '#ffffff',  // Singularity
+            26: '#00ff00'  // Conway
         }};
 
         const grid = {json.dumps(grid)};
