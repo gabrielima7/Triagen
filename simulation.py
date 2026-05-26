@@ -10,9 +10,9 @@ def create_grid(width, height, randomize=False):
     """Creates a 2D grid, optionally filled with random states."""
     grid = []
     if randomize:
-        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
-        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.44%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%), Yggdrasil (0%), Nidhogg (0.01%), Pandora (0.01%), Chronos (0.01%)
-        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.44, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.0, 0.01, 0.01, 0.01]
+        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.43%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%), Yggdrasil (0%), Nidhogg (0.01%), Pandora (0.01%), Chronos (0.01%), Paradox (0.01%)
+        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.43, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.0, 0.01, 0.01, 0.01, 0.01]
         for _ in range(height):
             row = random.choices(states, weights=weights, k=width)
             grid.append(row)
@@ -137,6 +137,7 @@ def update_grid(grid):
     nidhoggs = []
     pandoras = []
     chronos = []
+    paradoxes = []
     for y in range(height):
         for x in range(width):
             state = grid[y][x]
@@ -168,6 +169,8 @@ def update_grid(grid):
                 pandoras.append((y, x))
             elif state == 23:
                 chronos.append((y, x))
+            elif state == 24:
+                paradoxes.append((y, x))
 
     # Ensure at least one Godzilla, Jaeger, and Mothra are on the board
     if not godzillas:
@@ -475,13 +478,69 @@ def update_grid(grid):
                 if grid[ey][ex] in [7, 8, 9, 22]:
                     chronos_cleansed[(ey, ex)] = random.choice([0, 1, 2, 3, 4])
 
+    # 3.4.5 RESOLVE PARADOX MOVEMENT AND TIME ANOMALIES
+    paradox_targets = set()
+    time_anomalies = {}
+    for py, px in paradoxes:
+        # Paradox seeks Chronos
+        best_dist = float('inf')
+        best_moves = []
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if i == 0 and j == 0: continue
+                ny, nx = (py + i) % height, (px + j) % width
+                if grid[ny][nx] not in [17, 20] and (ny, nx) not in paradox_targets:
+                    min_c_dist = float('inf')
+                    for cy, cx in chronos:
+                        dist = abs(ny - cy) + abs(nx - cx)
+                        # Handle wrapping
+                        dist = min(dist, abs(ny - (cy + height)) + abs(nx - cx), abs(ny - cy) + abs(nx - (cx + width)), abs(ny - (cy + height)) + abs(nx - (cx + width)))
+                        if dist < min_c_dist:
+                            min_c_dist = dist
+
+                    if min_c_dist < best_dist:
+                        best_dist = min_c_dist
+                        best_moves = [(ny, nx)]
+                    elif min_c_dist == best_dist:
+                        best_moves.append((ny, nx))
+
+        if best_moves and chronos:
+            target_pos = random.choice(best_moves)
+        else:
+            # Move randomly if no Chronos
+            directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+            random.shuffle(directions)
+            moved = False
+            for dy, dx in directions:
+                ny, nx = (py + dy) % height, (px + dx) % width
+                if grid[ny][nx] not in [17, 20] and (ny, nx) not in paradox_targets:
+                    target_pos = (ny, nx)
+                    moved = True
+                    break
+            if not moved:
+                target_pos = (py, px)
+
+        paradox_targets.add(target_pos)
+
+        # Check for collision with Chronos
+        if target_pos in chronos_targets:
+            # Collision creates Time Anomalies in a 3x3 area
+            for i in range(-1, 2):
+                for j in range(-1, 2):
+                    ey, ex = (target_pos[0] + i) % height, (target_pos[1] + j) % width
+                    if random.random() < 0.5:
+                        time_anomalies[(ey, ex)] = 24 # Spawns more Paradoxes
+                    else:
+                        time_anomalies[(ey, ex)] = random.randint(0, 24)
+
     # 3.5 RESOLVE PANDORA'S BOX OPENING
     pandora_explosions = {}
     for py, px in pandoras:
         if ((py, px) in godzilla_targets or (py, px) in jaeger_targets or
             (py, px) in mothra_targets or (py, px) in mechagodzilla_targets or
             (py, px) in omega_targets or (py, px) in reaper_targets or
-            (py, px) in phoenix_targets or (py, px) in nidhogg_targets):
+            (py, px) in phoenix_targets or (py, px) in nidhogg_targets or
+            (py, px) in paradox_targets):
 
             # Pandora is touched! Unleash chaos in a 5x5 area
             for i in range(-2, 3):
@@ -490,11 +549,11 @@ def update_grid(grid):
                     if i == 0 and j == 0:
                         pandora_explosions[(ey, ex)] = 9 # Pandora becomes a Wormhole
                     else:
-                        # Full randomization of all states including Pandora
-                        pandora_explosions[(ey, ex)] = random.randint(0, 23)
+                        # Full randomization of all states including Pandora and Paradox
+                        pandora_explosions[(ey, ex)] = random.randint(0, 24)
 
     # 4. PRE-DETERMINE WORMHOLE QUANTUM TELEPORTATION TARGETS (to prevent cell overwrites)
-    available_voids = [v for v in voids if v not in godzilla_targets and v not in mothra_targets and v not in jaeger_targets and v not in mechagodzilla_targets and v not in omega_targets and v not in reaper_targets and v not in phoenix_targets and v not in nidhogg_targets and v not in pandora_explosions and v not in chronos_targets]
+    available_voids = [v for v in voids if v not in godzilla_targets and v not in mothra_targets and v not in jaeger_targets and v not in mechagodzilla_targets and v not in omega_targets and v not in reaper_targets and v not in phoenix_targets and v not in nidhogg_targets and v not in pandora_explosions and v not in chronos_targets and v not in paradox_targets and v not in time_anomalies]
     teleportation_targets = {}
     for wy, wx in wormholes:
         if available_voids:
@@ -510,12 +569,25 @@ def update_grid(grid):
                 new_grid[y][x] = chronos_cleansed[(y, x)]
                 continue
 
+            if (y, x) in time_anomalies:
+                new_grid[y][x] = time_anomalies[(y, x)]
+                continue
+
+            if (y, x) in paradox_targets:
+                new_grid[y][x] = 24
+                continue
+
             if (y, x) in chronos_targets:
                 new_grid[y][x] = 23
                 continue
 
             # Check if this cell previously had a Chronos (leaves a Void)
             if grid[y][x] == 23:
+                new_grid[y][x] = 6
+                continue
+
+            # Check if this cell previously had a Paradox (leaves a Void)
+            if grid[y][x] == 24:
                 new_grid[y][x] = 6
                 continue
 
@@ -917,9 +989,9 @@ def generate_html(grid):
     </style>
 </head>
 <body>
-    <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, Jaeger, Mothra, Glitch, MechaGodzilla, Omega, Nexus, Phoenix, Yggdrasil, Nidhogg, Pandora & Chronos</h2>
+    <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, Jaeger, Mothra, Glitch, MechaGodzilla, Omega, Nexus, Phoenix, Yggdrasil, Nidhogg, Pandora, Chronos & Paradox</h2>
     <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
-    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega | Light Cyan: Nexus | Dark Gray: Reaper | Coral: Phoenix | Forest Green: Yggdrasil | Dark Red: Nidhogg | Deep Pink: Pandora | Royal Blue: Chronos</p>
+    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega | Light Cyan: Nexus | Dark Gray: Reaper | Coral: Phoenix | Forest Green: Yggdrasil | Dark Red: Nidhogg | Deep Pink: Pandora | Royal Blue: Chronos | Dark Violet: Paradox</p>
 
     <script>
         const canvas = document.getElementById('simCanvas');
@@ -950,7 +1022,8 @@ def generate_html(grid):
             20: '#228b22', // Yggdrasil
             21: '#8b0000', // Nidhogg
             22: '#ff1493', // Pandora
-            23: '#4169e1'  // Chronos
+            23: '#4169e1', // Chronos
+            24: '#9400d3'  // Paradox
         }};
 
         const grid = {json.dumps(grid)};
