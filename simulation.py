@@ -10,9 +10,9 @@ def create_grid(width, height, randomize=False):
     """Creates a 2D grid, optionally filled with random states."""
     grid = []
     if randomize:
-        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
-        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.43%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%), Yggdrasil (0%), Nidhogg (0.01%), Pandora (0.01%), Chronos (0.01%), Paradox (0.01%), Singularity (0.0001%), Conway (0.0001%)
-        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.4299, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.0, 0.01, 0.01, 0.01, 0.01, 0.0001, 0.0001]
+        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]
+        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.43%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%), Yggdrasil (0%), Nidhogg (0.01%), Pandora (0.01%), Chronos (0.01%), Paradox (0.01%), Singularity (0.0001%), Conway (0.0001%), Neutron Stars (0.0)
+        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.4299, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.0, 0.01, 0.01, 0.01, 0.01, 0.0001, 0.0001, 0.0, 0.0]
         for _ in range(height):
             row = random.choices(states, weights=weights, k=width)
             grid.append(row)
@@ -75,7 +75,7 @@ def save_state(grid):
 
 def print_grid(grid):
     """Prints the grid to the console."""
-    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@", 9: "W", 10: "G", 11: "J", 12: "M", 13: "X", 14: "A", 15: "Z", 16: "O", 17: "N", 18: "D", 20: "Y", 21: "H", 25: "I", 26: "C"}
+    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@", 9: "W", 10: "G", 11: "J", 12: "M", 13: "X", 14: "A", 15: "Z", 16: "O", 17: "N", 18: "D", 20: "Y", 21: "H", 25: "I", 26: "C", 27: "+", 28: "x"}
     for row in grid:
         print(" ".join(chars.get(cell, "?") for cell in row))
     print()
@@ -140,6 +140,9 @@ def update_grid(grid):
     paradoxes = []
     singularities = []
     conways = []
+    neutron_stars_ortho = []
+    neutron_stars_diag = []
+    beam_targets = set()
     for y in range(height):
         for x in range(width):
             state = grid[y][x]
@@ -177,6 +180,10 @@ def update_grid(grid):
                 singularities.append((y, x))
             elif state == 26:
                 conways.append((y, x))
+            elif state == 27:
+                neutron_stars_ortho.append((y, x))
+            elif state == 28:
+                neutron_stars_diag.append((y, x))
 
     conway_seeds = set()
     if len(conways) < 15 and random.random() < 0.10:
@@ -581,6 +588,19 @@ def update_grid(grid):
             teleported_state = random.choice(wormhole_horizons) if wormhole_horizons else random.choice([0, 1, 2, 3, 4])
             teleportation_targets[(target_y, target_x)] = teleported_state
 
+    # Pre-calculate Neutron Star beams
+    for ny, nx in neutron_stars_ortho:
+        for dy, dx in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+            for step in range(1, 6):
+                by, bx = (ny + dy * step) % height, (nx + dx * step) % width
+                beam_targets.add((by, bx))
+
+    for ny, nx in neutron_stars_diag:
+        for dy, dx in [(1, 1), (1, -1), (-1, 1), (-1, -1)]:
+            for step in range(1, 6):
+                by, bx = (ny + dy * step) % height, (nx + dx * step) % width
+                beam_targets.add((by, bx))
+
     # 5. MAIN CELLULAR AUTOMATON UPDATE PASS
     for y in range(height):
         for x in range(width):
@@ -613,6 +633,10 @@ def update_grid(grid):
             # Check if this cell is caught in a Pandora's Box explosion
             if (y, x) in pandora_explosions:
                 new_grid[y][x] = pandora_explosions[(y, x)]
+                continue
+
+            if (y, x) in beam_targets and grid[y][x] not in [5, 9, 17, 27, 28]:
+                new_grid[y][x] = 8
                 continue
 
             if (y, x) in conway_seeds:
@@ -931,8 +955,13 @@ def update_grid(grid):
 
             # --- STATE 7: SUPERNOVA ---
             elif current_state == 7:
-                if random.random() < 0.05:
+                r = random.random()
+                if r < 0.05:
                     new_grid[y][x] = 16 # Supernova becomes Omega
+                elif r < 0.07:
+                    new_grid[y][x] = 27 # Supernova becomes Neutron Star Ortho
+                elif r < 0.09:
+                    new_grid[y][x] = 28 # Supernova becomes Neutron Star Diag
                 else:
                     new_grid[y][x] = 8 # Supernova becomes Pulsar
                 continue
@@ -959,6 +988,16 @@ def update_grid(grid):
                     new_grid[y][x] = 6 # Wormhole collapses into Void
                 else:
                     new_grid[y][x] = 9
+                continue
+
+            # --- STATE 27: NEUTRON STAR ORTHO ---
+            elif current_state == 27:
+                new_grid[y][x] = 28
+                continue
+
+            # --- STATE 28: NEUTRON STAR DIAG ---
+            elif current_state == 28:
+                new_grid[y][x] = 27
                 continue
 
             # --- STATE 26: CONWAY ---
@@ -1084,7 +1123,9 @@ def generate_html(grid):
             23: '#4169e1', // Chronos
             24: '#9400d3', // Paradox
             25: '#ffffff',  // Singularity
-            26: '#00ff00'  // Conway
+            26: '#00ff00', // Conway
+            27: '#00ffcc', // Neutron Star Ortho
+            28: '#00ffcc'  // Neutron Star Diag
         }};
 
         const grid = {json.dumps(grid)};
