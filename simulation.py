@@ -10,9 +10,9 @@ def create_grid(width, height, randomize=False):
     """Creates a 2D grid, optionally filled with random states."""
     grid = []
     if randomize:
-        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
-        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.43%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%), Yggdrasil (0%), Nidhogg (0.01%), Pandora (0.01%), Chronos (0.01%), Paradox (0.01%), Singularity (0.0001%), Conway (0.0001%)
-        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.4299, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.0, 0.01, 0.01, 0.01, 0.01, 0.0001, 0.0001]
+        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]
+        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.43%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%), Yggdrasil (0%), Nidhogg (0.01%), Pandora (0.01%), Chronos (0.01%), Paradox (0.01%), Singularity (0.0001%), Conway (0.0001%), Neutron Star Ortho (0.005%), Neutron Star Diag (0.005%)
+        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.4299, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.0, 0.01, 0.01, 0.01, 0.01, 0.0001, 0.0001, 0.005, 0.005]
         for _ in range(height):
             row = random.choices(states, weights=weights, k=width)
             grid.append(row)
@@ -140,6 +140,8 @@ def update_grid(grid):
     paradoxes = []
     singularities = []
     conways = []
+    neutron_stars_ortho = []
+    neutron_stars_diag = []
     for y in range(height):
         for x in range(width):
             state = grid[y][x]
@@ -177,6 +179,10 @@ def update_grid(grid):
                 singularities.append((y, x))
             elif state == 26:
                 conways.append((y, x))
+            elif state == 27:
+                neutron_stars_ortho.append((y, x))
+            elif state == 28:
+                neutron_stars_diag.append((y, x))
 
     conway_seeds = set()
     if len(conways) < 15 and random.random() < 0.10:
@@ -581,6 +587,21 @@ def update_grid(grid):
             teleported_state = random.choice(wormhole_horizons) if wormhole_horizons else random.choice([0, 1, 2, 3, 4])
             teleportation_targets[(target_y, target_x)] = teleported_state
 
+    beam_targets = set()
+    blocking_states = {0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28}
+    for ny, nx in neutron_stars_ortho:
+        for dy, dx in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+            cy, cx = (ny + dy) % height, (nx + dx) % width
+            while grid[cy][cx] not in blocking_states and (cy, cx) != (ny, nx):
+                beam_targets.add((cy, cx))
+                cy, cx = (cy + dy) % height, (cx + dx) % width
+    for ny, nx in neutron_stars_diag:
+        for dy, dx in [(1, 1), (1, -1), (-1, 1), (-1, -1)]:
+            cy, cx = (ny + dy) % height, (nx + dx) % width
+            while grid[cy][cx] not in blocking_states and (cy, cx) != (ny, nx):
+                beam_targets.add((cy, cx))
+                cy, cx = (cy + dy) % height, (cx + dx) % width
+
     # 5. MAIN CELLULAR AUTOMATON UPDATE PASS
     for y in range(height):
         for x in range(width):
@@ -729,6 +750,10 @@ def update_grid(grid):
                 new_grid[y][x] = 5
                 continue
 
+            if (y, x) in beam_targets:
+                new_grid[y][x] = 8 # Beams turn cells into Pulsars
+                continue
+
             # Check if this cell receives a quantum teleported state
             if (y, x) in teleportation_targets:
                 new_grid[y][x] = teleportation_targets[(y, x)]
@@ -822,6 +847,11 @@ def update_grid(grid):
                 if random.random() < (0.10 * glitch_neighbors):
                     new_grid[y][x] = 13
                     continue
+
+            # --- STATES 27 & 28: NEUTRON STARS ---
+            if current_state in [27, 28]:
+                new_grid[y][x] = current_state
+                continue
 
             # --- STATE 5: BLACK HOLE ---
             if current_state == 5:
@@ -1050,7 +1080,7 @@ def generate_html(grid):
 <body>
     <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, Jaeger, Mothra, Glitch, MechaGodzilla, Omega, Nexus, Phoenix, Yggdrasil, Nidhogg, Pandora, Chronos & Paradox</h2>
     <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
-    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega | Light Cyan: Nexus | Dark Gray: Reaper | Coral: Phoenix | Forest Green: Yggdrasil | Dark Red: Nidhogg | Deep Pink: Pandora | Royal Blue: Chronos | Dark Violet: Paradox | Pure White: Singularity</p>
+    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega | Light Cyan: Nexus | Dark Gray: Reaper | Coral: Phoenix | Forest Green: Yggdrasil | Dark Red: Nidhogg | Deep Pink: Pandora | Royal Blue: Chronos | Dark Violet: Paradox | Pure White: Singularity | Lavender: Neutron Star Ortho | Thistle: Neutron Star Diag</p>
 
     <script>
         const canvas = document.getElementById('simCanvas');
@@ -1084,7 +1114,9 @@ def generate_html(grid):
             23: '#4169e1', // Chronos
             24: '#9400d3', // Paradox
             25: '#ffffff',  // Singularity
-            26: '#00ff00'  // Conway
+            26: '#00ff00',  // Conway
+            27: '#e6e6fa', // Neutron Star Ortho
+            28: '#d8bfd8'  // Neutron Star Diag
         }};
 
         const grid = {json.dumps(grid)};
