@@ -1,21 +1,32 @@
-1. **Define State 22 (Pandora)**
-   - Color: Deep Pink (`#ff1493`)
-   - Add state 22 to `create_grid` (0.01% chance on initialization).
-   - Add state 22 spawning logic in Void to `update_grid` (0.01% chance).
-   - Add state 22 description and visualization in `generate_html`.
-
-2. **Implement Pandora interactions in `update_grid`**
-   - Identify Pandora cells during the O(N) pre-computation pass.
-   - Keep Pandora cells completely still. (No movement logic needed).
-   - Check if Pandora is touched by any Kaiju (Godzilla, Jaeger, Mothra, MechaGodzilla, Omega, Reaper, Phoenix, Nidhogg). We can check for a collision by seeing if the Pandora cell is targeted by any Kaiju.
-   - If Pandora is touched, trigger the catastrophic opening:
-     - The Pandora cell becomes a Wormhole (`9`).
-     - A 5x5 area around the Pandora cell is randomized with all 22 states.
-   - To implement the 5x5 explosion smoothly without messing up nested iteration order, we will create a `pandora_explosions` list/set to store targets that will be hit by an open Pandora box. Then we process these explosions safely. We must also update `teleportation_targets` filtering. Wait, actually, the 5x5 explosion can just be handled when processing Pandora collisions, by adding to a global dictionary like `pandora_targets = {}` mapping `(y, x)` to random states, overriding almost everything else. Let's do that!
-
-3. **Modify `agent_handover.md`**
-   - Document the shift (Shift 20) and the creation of Pandora.
-
-4. **Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.**
-
-5. **Submit changes.**
+1. **Edit `simulation.py` to add state 29 to `states` and `weights`**
+   - At line 13, add `29` to the `states` array.
+   - At line 15, add a weight of `0.005` to the `weights` array.
+2. **Verify step 1**
+   - Run `grep -C 2 "states =" simulation.py` to ensure the updates to states and weights are correct.
+3. **Edit `simulation.py` to add state 29 to `blocking_states`**
+   - At line 591, add `29` to the `blocking_states` set.
+4. **Verify step 3**
+   - Run `grep -C 2 "blocking_states" simulation.py` to verify the update.
+5. **Edit `simulation.py` to insert the beam interaction logic for Radiotrophs**
+   - Around line 753, inside the loop over the grid, add logic to handle `current_state == 29`.
+   - If a Radiotroph is targeted by a beam (`(y, x) in beam_targets`), it survives and spreads to adjacent Void (State 6) cells. Add the new position to `new_grid`.
+   - If not targeted by a beam, there is a chance (e.g. 5%) it decays to Void (State 6).
+   - Also, update the beam effect logic so that if the `current_state` is 29, it does not turn into a Pulsar (state 8).
+6. **Verify step 5**
+   - Run `grep -C 5 "== 29" simulation.py` to verify the new logic.
+7. **Edit `simulation.py` to add state 29 to the HTML template colors**
+   - Around line 1118, add `29: '#7fff00'  // Radiotroph` to the template string generating `const colors` in the `generate_html` function.
+8. **Verify step 7**
+   - Run `grep -C 2 "'#7fff00'" simulation.py` to verify the new color assignment.
+9. **Update `agent_handover.md`**
+   - Append a new section for Shift 26 introducing Radiotrophs, their behavior, and color.
+10. **Verify step 9**
+    - Run `tail -n 20 agent_handover.md` to ensure the handover log was updated correctly.
+11. **Run Core Simulation**
+    - Execute `python simulation.py` to verify the changes don't break the main loop and `state.json` and `index.html` update correctly.
+12. **Frontend Verification**
+    - Follow `frontend_verification_instructions` and execute the Playwright script to visually verify `index.html`.
+13. **Complete pre-commit steps**
+    - Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.
+14. **Submit the change**
+    - Submit the branch to save the introduction of Radiotrophs.
