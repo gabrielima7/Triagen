@@ -1,1 +1,1 @@
-print("Plan exploration script.")
+print("Plan exploration script ran.")
