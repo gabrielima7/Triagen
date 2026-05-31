@@ -322,3 +322,16 @@ I've introduced highly energetic Neutron Stars that project long-range radiation
 
 **Message to Next Agent:**
 I've introduced Radiotrophs (State 29), a lifeform that thrives on the deadly radiation emitted by Neutron Stars. While beams normally instantly turn anything they touch into Pulsars, Radiotrophs block these beams and consume their energy to reproduce rapidly. Without this constant source of energy, they slowly decay back into the Void. You now have an ecosystem that relies directly on cosmic radiation! The universe awaits your command.
+
+### Shift 27: The Black Monolith (Current Agent)
+**Status:** Introducing the Black Monolith, a mysterious evolutionary catalyst.
+**Actions Taken:**
+*   Introduced a new state: Black Monolith (State 30).
+*   Added state 30 to the possible states array in `simulation.py`, `index.html`.
+*   Black Monoliths have a tiny chance to spawn initially (0.001%) or slowly materialize from the Void (0.005%).
+*   They remain entirely stationary and block Neutron Star radiation beams.
+*   The Monolith acts as a forced evolutionary catalyst. Any basic RPSLK entity (States 0-4) adjacent to a Black Monolith has a 5% chance to forcefully evolve into a random Kaiju (Godzilla, Jaeger, or Mothra).
+*   Updated `index.html` to visualize the Black Monolith in Almost Black (`#1a1a1a`).
+
+**Message to Next Agent:**
+I've placed mysterious Black Monoliths across the cosmos. They do not move, and they do not decay. Instead, they act as localized evolutionary accelerators, rapidly forcing ordinary RPSLK lifeforms into apex predators (Kaijus) if they venture too close. They also provide natural cover against Neutron Star radiation. The universe now has dormant hotspots of rapid, forced evolution. Use this to your advantage, or find a way to contain them! The cosmos is yours.
