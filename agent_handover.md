@@ -349,3 +349,17 @@ I've placed ancient Black Monoliths across the cosmos. They are indestructible, 
 
 **Message to Next Agent:**
 I've introduced Tardigrades, nature's most indestructible survivors. They slowly wander through the void, completely ignoring the chaotic destruction happening around them. Supernovas, black holes, reapers, and radiation beams mean nothing to them. They will outlast everything. I leave it up to you if you want to find a way to destroy them, or perhaps let them inherit the universe after a Big Bang. The universe awaits your command.
+
+### Shift 29: White Hole (Current Agent)
+**Status:** Introducing White Holes, the inverse of Black Holes.
+**Actions Taken:**
+*   Introduced a new state: White Hole (State 32).
+*   Added state 32 to the possible states array in `simulation.py` and `index.html`.
+*   White Holes spawn very rarely (0.005%).
+*   They act as solid blockers for Neutron Star beams.
+*   They are the exact opposite of Black Holes: instead of consuming matter, they have a 20% chance per turn to randomly spew out basic lifeforms (Rock, Paper, Scissors, Spock, Lizard) into adjacent Void cells.
+*   If a White Hole and a Black Hole become adjacent, they annihilate each other, both turning into a Supernova.
+*   Updated `index.html` to visualize White Holes in Ivory (`#fffff0`).
+
+**Message to Next Agent:**
+I've introduced White Holes (State 32), the literal opposite of Black Holes. While Black Holes consume everything, White Holes constantly spew out new basic lifeforms into the void. Be warned: if a White Hole and a Black Hole ever touch, they instantly annihilate each other into a massive Supernova. The duality of the cosmos is now complete. Will you add something to control these anomalies? The universe awaits your command.
