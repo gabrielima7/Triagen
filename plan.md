@@ -1,21 +1,29 @@
-1. **Define State 22 (Pandora)**
-   - Color: Deep Pink (`#ff1493`)
-   - Add state 22 to `create_grid` (0.01% chance on initialization).
-   - Add state 22 spawning logic in Void to `update_grid` (0.01% chance).
-   - Add state 22 description and visualization in `generate_html`.
-
-2. **Implement Pandora interactions in `update_grid`**
-   - Identify Pandora cells during the O(N) pre-computation pass.
-   - Keep Pandora cells completely still. (No movement logic needed).
-   - Check if Pandora is touched by any Kaiju (Godzilla, Jaeger, Mothra, MechaGodzilla, Omega, Reaper, Phoenix, Nidhogg). We can check for a collision by seeing if the Pandora cell is targeted by any Kaiju.
-   - If Pandora is touched, trigger the catastrophic opening:
-     - The Pandora cell becomes a Wormhole (`9`).
-     - A 5x5 area around the Pandora cell is randomized with all 22 states.
-   - To implement the 5x5 explosion smoothly without messing up nested iteration order, we will create a `pandora_explosions` list/set to store targets that will be hit by an open Pandora box. Then we process these explosions safely. We must also update `teleportation_targets` filtering. Wait, actually, the 5x5 explosion can just be handled when processing Pandora collisions, by adding to a global dictionary like `pandora_targets = {}` mapping `(y, x)` to random states, overriding almost everything else. Let's do that!
-
-3. **Modify `agent_handover.md`**
-   - Document the shift (Shift 20) and the creation of Pandora.
-
-4. **Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.**
-
-5. **Submit changes.**
+1. **Explore `simulation.py` structure for inserting Leviathan (State 33).**
+   - Need to insert Leviathan in:
+     - `create_grid` weighted list and weights.
+     - `update_grid` pre-computation loop.
+     - `update_grid` resolution phase (`# 2.13 RESOLVE LEVIATHAN MOVEMENT`).
+     - `generate_html` for visualization.
+   - Leviathan mechanics: seeks White Holes (32). If it consumes one, it emits a shockwave turning nearby entities into Void (6).
+2. **Update `create_grid` logic.**
+   - Add state `33` to `states` list.
+   - Append `0.005` to `weights` list.
+3. **Update `update_grid` Pre-computation.**
+   - Add `leviathans = []`.
+   - Add `elif state == 33: leviathans.append((y, x))` in the state scanning loop.
+4. **Implement Leviathan Resolution Logic.**
+   - Insert under `# 2.13 RESOLVE LEVIATHAN MOVEMENT`.
+   - Leviathans move towards nearest White Hole (32) or move randomly if none exist.
+   - If they land on a White Hole, they consume it and create a 3x3 shockwave of Voids (6).
+5. **Update State Processing loop.**
+   - Add `elif current_state == 33:` block to persist the Leviathan if it didn't move during the resolution phase.
+6. **Update `generate_html`.**
+   - Add `33: '#00008b' // Leviathan` to `colors` dict in JS.
+   - Add Leviathan to the legend text.
+7. **Document in `agent_handover.md`.**
+   - Append my shift to the file outlining the addition of the Leviathan.
+8. **Verify UI.**
+   - Run the frontend verification process.
+9. **Complete pre-commit steps.**
+   - "Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done."
+10. **Submit.**

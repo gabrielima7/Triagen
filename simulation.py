@@ -10,9 +10,9 @@ def create_grid(width, height, randomize=False):
     """Creates a 2D grid, optionally filled with random states."""
     grid = []
     if randomize:
-        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
-        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.43%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%), Yggdrasil (0%), Nidhogg (0.01%), Pandora (0.01%), Chronos (0.01%), Paradox (0.01%), Singularity (0.0001%), Conway (0.0001%), Neutron Star Ortho (0.005%), Neutron Star Diag (0.005%), Radiotroph (0.005%), Black Monolith (0.005%), Tardigrade (0.005%), White Hole (0.005%)
-        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.4199, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.0, 0.01, 0.01, 0.01, 0.01, 0.0001, 0.0001, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005]
+        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
+        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.43%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%), Yggdrasil (0%), Nidhogg (0.01%), Pandora (0.01%), Chronos (0.01%), Paradox (0.01%), Singularity (0.0001%), Conway (0.0001%), Neutron Star Ortho (0.005%), Neutron Star Diag (0.005%), Radiotroph (0.005%), Black Monolith (0.005%), Tardigrade (0.005%), White Hole (0.005%), Leviathan (0.005%)
+        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.4199, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.0, 0.01, 0.01, 0.01, 0.01, 0.0001, 0.0001, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005]
         for _ in range(height):
             row = random.choices(states, weights=weights, k=width)
             grid.append(row)
@@ -145,6 +145,7 @@ def update_grid(grid):
     black_monoliths = []
     tardigrades = []
     white_holes = []
+    leviathans = []
     for y in range(height):
         for x in range(width):
             state = grid[y][x]
@@ -192,6 +193,8 @@ def update_grid(grid):
                 tardigrades.append((y, x))
             elif state == 32:
                 white_holes.append((y, x))
+            elif state == 33:
+                leviathans.append((y, x))
 
     conway_seeds = set()
     if len(conways) < 15 and random.random() < 0.10:
@@ -476,6 +479,67 @@ def update_grid(grid):
                     break
             if not moved:
                 nidhogg_targets.add((ny_pos, nx_pos))
+
+    # 2.13 RESOLVE LEVIATHAN MOVEMENT (seeking nearest White Hole)
+    leviathan_targets = set()
+    leviathan_shockwaves = set()
+    for ly_pos, lx_pos in leviathans:
+        if white_holes:
+            # Find nearest White Hole
+            nearest_wh = None
+            min_dist = float('inf')
+            for wy, wx in white_holes:
+                dist = abs(wy - ly_pos) + abs(wx - lx_pos)
+                if dist < min_dist:
+                    min_dist = dist
+                    nearest_wh = (wy, wx)
+
+            if nearest_wh:
+                wy, wx = nearest_wh
+                # Consume White Hole if adjacent, otherwise move towards it
+                if min_dist <= 2: # adjacent (considering wrap around, simpler to just say distance 1 or 2)
+                    leviathan_targets.add((wy, wx))
+                    # Trigger shockwave
+                    for i in range(-1, 2):
+                        for j in range(-1, 2):
+                            sy, sx = (wy + i) % height, (wx + j) % width
+                            if (sy, sx) != (wy, wx):
+                                leviathan_shockwaves.add((sy, sx))
+                    # Remove consumed White Hole so other Leviathans don't target it
+                    white_holes.remove((wy, wx))
+                else:
+                    # Move one step towards White Hole
+                    dy, dx = 0, 0
+                    if wy > ly_pos: dy = 1
+                    elif wy < ly_pos: dy = -1
+                    elif wx > lx_pos: dx = 1
+                    elif wx < lx_pos: dx = -1
+
+                    ny_next, nx_next = (ly_pos + dy) % height, (lx_pos + dx) % width
+                    if grid[ny_next][nx_next] != 33 and grid[ny_next][nx_next] != 17 and (ny_next, nx_next) not in leviathan_targets:
+                        leviathan_targets.add((ny_next, nx_next))
+                    else:
+                        leviathan_targets.add((ly_pos, lx_pos))
+        else:
+            # Move randomly
+            directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+            random.shuffle(directions)
+            moved = False
+            for dy, dx in directions:
+                ny_next, nx_next = (ly_pos + dy) % height, (lx_pos + dx) % width
+                if grid[ny_next][nx_next] != 33 and grid[ny_next][nx_next] != 17 and (ny_next, nx_next) not in leviathan_targets:
+                    leviathan_targets.add((ny_next, nx_next))
+                    moved = True
+                    break
+            if not moved:
+                leviathan_targets.add((ly_pos, lx_pos))
+
+    # RESOLVE LEVIATHAN PLACEMENT & SHOCKWAVES
+    for ly, lx in leviathan_targets:
+        new_grid[ly][lx] = 33
+    for sy, sx in leviathan_shockwaves:
+        if new_grid[sy][sx] not in [33, 17, 30]: # Don't overwrite leviathans, nexus, or monoliths
+            new_grid[sy][sx] = 6
 
     # 3. COLLECT WORMHOLE HORIZONS (Normal states adjacent to any Wormhole)
     wormhole_horizons = []
@@ -962,6 +1026,13 @@ def update_grid(grid):
                                 break
                 continue
 
+            # --- STATE 33: LEVIATHAN ---
+            elif current_state == 33:
+                # Handled in resolution phase, but persist if not moved
+                if (y, x) in leviathan_targets:
+                    new_grid[y][x] = 33
+                continue
+
             # --- STATE 29: RADIOTROPH ---
             elif current_state == 29:
                 if random.random() < 0.05:
@@ -1180,7 +1251,7 @@ def generate_html(grid):
 <body>
     <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, Jaeger, Mothra, Glitch, MechaGodzilla, Omega, Nexus, Phoenix, Yggdrasil, Nidhogg, Pandora, Chronos & Paradox</h2>
     <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
-    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega | Light Cyan: Nexus | Dark Gray: Reaper | Coral: Phoenix | Forest Green: Yggdrasil | Dark Red: Nidhogg | Deep Pink: Pandora | Royal Blue: Chronos | Dark Violet: Paradox | Pure White: Singularity | Lavender: Neutron Star Ortho | Thistle: Neutron Star Diag | Chartreuse: Radiotroph | Dark Slate Gray: Black Monolith | Saddle Brown: Tardigrade</p>
+    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega | Light Cyan: Nexus | Dark Gray: Reaper | Coral: Phoenix | Forest Green: Yggdrasil | Dark Red: Nidhogg | Deep Pink: Pandora | Royal Blue: Chronos | Dark Violet: Paradox | Pure White: Singularity | Lavender: Neutron Star Ortho | Thistle: Neutron Star Diag | Chartreuse: Radiotroph | Dark Slate Gray: Black Monolith | Saddle Brown: Tardigrade | Deep Ocean Blue: Leviathan</p>
 
     <script>
         const canvas = document.getElementById('simCanvas');
@@ -1220,7 +1291,8 @@ def generate_html(grid):
             29: '#7fff00', // Radiotroph
             30: '#2f4f4f', // Black Monolith
             31: '#8b4513', // Tardigrade
-            32: '#fffff0'  // White Hole
+            32: '#fffff0', // White Hole
+            33: '#00008b'  // Leviathan
         }};
 
         const grid = {json.dumps(grid)};

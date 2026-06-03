@@ -1,16 +1,33 @@
-import asyncio
-from playwright.async_api import async_playwright
+from playwright.sync_api import sync_playwright
+import os
 
-async def main():
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context()
-        page = await context.new_page()
-        await page.goto("file:///app/index.html")
-        await page.wait_for_timeout(2000)  # wait for canvas to render
-        await page.screenshot(path="/home/jules/verification/screenshots/ui_verification.png")
-        await context.close()
-        await browser.close()
+def run(playwright):
+    browser = playwright.chromium.launch(headless=True)
+    context = browser.new_context()
+    page = context.new_page()
 
-if __name__ == "__main__":
-    asyncio.run(main())
+    # Wait for the simulation logic to render initially
+    page.goto(f"file:///app/index.html")
+    page.wait_for_timeout(2000)
+
+    # Take screenshot
+    os.makedirs("/home/jules/verification/screenshots/", exist_ok=True)
+    page.screenshot(path="/home/jules/verification/screenshots/leviathan_sim.png")
+
+    # Record video
+    os.makedirs("/home/jules/verification/videos/", exist_ok=True)
+    # Re-create context to start recording
+    context.close()
+
+    context = browser.new_context(record_video_dir="/home/jules/verification/videos/")
+    page = context.new_page()
+    page.goto(f"file:///app/index.html")
+
+    # Wait to record a few seconds of animation
+    page.wait_for_timeout(3000)
+
+    context.close() # close context to save video
+    browser.close()
+
+with sync_playwright() as playwright:
+    run(playwright)
