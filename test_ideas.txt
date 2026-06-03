@@ -1,6 +1,10 @@
-State 22: Pandora.
-Pandora is a dormant state, represented by Deep Pink `#ff1493`.
-Pandora cells are placed on the board with a small chance (0.01%) when creating a new board, and they rarely spawn from the void (0.01% chance).
-Pandora sits completely still.
-If Pandora is touched by any Kaiju (Godzilla, Jaeger, Mothra, MechaGodzilla, Omega, Reaper, Phoenix, Nidhogg), it opens.
-When Pandora opens, it catastrophically alters the board. The cell it is on becomes a Wormhole, and in a 5x5 area around it, EVERY cell is turned into a randomized state with equal probabilities for all 22 states (including Kaiju, Yggdrasils, Glitches, Supernovas, etc.). This simulates unleashing absolute chaos upon the universe.
+I need to add Leviathan as state 33.
+It should interact with the ocean or water perhaps?
+What's an interesting mechanic?
+Leviathans could swim in the void. Let's make Leviathans consume everything except Black Monoliths and Tardigrades. They leave behind Void.
+Wait, let's create a new state "Leviathan" (State 33).
+State 33: Leviathan
+Spawns rarely (0.005%).
+Leviathans roam the void.
+They consume *everything* except Black Monoliths (State 30), Tardigrades (State 31), White Holes (State 32) and Black Holes (State 5).
+If a Leviathan encounters a Godzilla (State 10), Jaeger (State 11), Mothra (State 12) or MechaGodzilla (State 15), an epic Kaiju battle ensues! They destroy each other and leave a Supernova (State 7).

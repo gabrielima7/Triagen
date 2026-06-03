@@ -1,21 +1,11 @@
-1. **Define State 22 (Pandora)**
-   - Color: Deep Pink (`#ff1493`)
-   - Add state 22 to `create_grid` (0.01% chance on initialization).
-   - Add state 22 spawning logic in Void to `update_grid` (0.01% chance).
-   - Add state 22 description and visualization in `generate_html`.
-
-2. **Implement Pandora interactions in `update_grid`**
-   - Identify Pandora cells during the O(N) pre-computation pass.
-   - Keep Pandora cells completely still. (No movement logic needed).
-   - Check if Pandora is touched by any Kaiju (Godzilla, Jaeger, Mothra, MechaGodzilla, Omega, Reaper, Phoenix, Nidhogg). We can check for a collision by seeing if the Pandora cell is targeted by any Kaiju.
-   - If Pandora is touched, trigger the catastrophic opening:
-     - The Pandora cell becomes a Wormhole (`9`).
-     - A 5x5 area around the Pandora cell is randomized with all 22 states.
-   - To implement the 5x5 explosion smoothly without messing up nested iteration order, we will create a `pandora_explosions` list/set to store targets that will be hit by an open Pandora box. Then we process these explosions safely. We must also update `teleportation_targets` filtering. Wait, actually, the 5x5 explosion can just be handled when processing Pandora collisions, by adding to a global dictionary like `pandora_targets = {}` mapping `(y, x)` to random states, overriding almost everything else. Let's do that!
-
-3. **Modify `agent_handover.md`**
-   - Document the shift (Shift 20) and the creation of Pandora.
-
-4. **Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.**
-
-5. **Submit changes.**
+1. **Fix the Exponential Replication Bug for Leviathans**
+   - The code review pointed out that the check `if (y, x) in leviathans and (y, x) not in leviathan_targets.values(): new_grid[y][x] = 6` is flawed. The check causes them to clone instead of move.
+   - I need to change it simply to `if (y, x) in leviathans: new_grid[y][x] = 6`. Because stationary Leviathans stay in place via `leviathan_targets[(ly, lx)] = (ly, lx)`, which is caught by the check right above it: `if (y, x) in leviathan_targets: new_grid[y][x] = 33`. So if a cell was a leviathan but not targeted by anything, it should just be left as a void (6).
+2. **Execute Simulation to verify the fix**
+   - Run `python simulation.py` to make sure it doesn't crash and the logic is fixed.
+3. **Run Code Review Again**
+   - Request another code review.
+4. **Initiate Memory Recording**
+   - Document the cellular automaton movement resolution pattern.
+5. **Complete pre-commit steps**
+   - Mark the step as complete.

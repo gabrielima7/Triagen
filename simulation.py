@@ -10,9 +10,9 @@ def create_grid(width, height, randomize=False):
     """Creates a 2D grid, optionally filled with random states."""
     grid = []
     if randomize:
-        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
-        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.43%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%), Yggdrasil (0%), Nidhogg (0.01%), Pandora (0.01%), Chronos (0.01%), Paradox (0.01%), Singularity (0.0001%), Conway (0.0001%), Neutron Star Ortho (0.005%), Neutron Star Diag (0.005%), Radiotroph (0.005%), Black Monolith (0.005%), Tardigrade (0.005%), White Hole (0.005%)
-        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.4199, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.0, 0.01, 0.01, 0.01, 0.01, 0.0001, 0.0001, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005]
+        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
+        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.43%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%), Yggdrasil (0%), Nidhogg (0.01%), Pandora (0.01%), Chronos (0.01%), Paradox (0.01%), Singularity (0.0001%), Conway (0.0001%), Neutron Star Ortho (0.005%), Neutron Star Diag (0.005%), Radiotroph (0.005%), Black Monolith (0.005%), Tardigrade (0.005%), White Hole (0.005%), Leviathan (0.005%)
+        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.4199, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.0, 0.01, 0.01, 0.01, 0.01, 0.0001, 0.0001, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005]
         for _ in range(height):
             row = random.choices(states, weights=weights, k=width)
             grid.append(row)
@@ -145,6 +145,7 @@ def update_grid(grid):
     black_monoliths = []
     tardigrades = []
     white_holes = []
+    leviathans = []
     for y in range(height):
         for x in range(width):
             state = grid[y][x]
@@ -192,6 +193,8 @@ def update_grid(grid):
                 tardigrades.append((y, x))
             elif state == 32:
                 white_holes.append((y, x))
+            elif state == 33:
+                leviathans.append((y, x))
 
     conway_seeds = set()
     if len(conways) < 15 and random.random() < 0.10:
@@ -586,8 +589,30 @@ def update_grid(grid):
                         # Full randomization of all states including Pandora and Paradox
                         pandora_explosions[(ey, ex)] = random.randint(0, 24)
 
-    # 4. PRE-DETERMINE WORMHOLE QUANTUM TELEPORTATION TARGETS (to prevent cell overwrites)
-    available_voids = [v for v in voids if v not in godzilla_targets and v not in mothra_targets and v not in jaeger_targets and v not in mechagodzilla_targets and v not in omega_targets and v not in reaper_targets and v not in phoenix_targets and v not in nidhogg_targets and v not in pandora_explosions and v not in chronos_targets and v not in paradox_targets and v not in time_anomalies]
+    # 4. PRE-DETERMINE WORMHOLE QUANTUM TELEPORTATION TARGETS AND LEVIATHAN MOVES
+    leviathan_targets = {}
+    leviathan_supernovas = set()
+    for ly, lx in leviathans:
+        # Move one step randomly (including diagonals) or stay in place
+        dy, dx = random.choice([(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1), (0, 0)])
+        if dy == 0 and dx == 0:
+            leviathan_targets[(ly, lx)] = (ly, lx)
+            continue
+        ny, nx = (ly + dy) % height, (lx + dx) % width
+
+        target_state = grid[ny][nx]
+        # Immune states
+        if target_state in [5, 30, 31, 32]:
+            leviathan_targets[(ly, lx)] = (ly, lx) # Stay in place
+        # Epic Kaiju battle
+        elif target_state in [10, 11, 12, 15, 21]:
+            leviathan_supernovas.add((ny, nx))
+            leviathan_supernovas.add((ly, lx))
+        else:
+            # Move and consume normal matter
+            leviathan_targets[(ny, nx)] = (ly, lx)
+
+    available_voids = [v for v in voids if v not in godzilla_targets and v not in mothra_targets and v not in jaeger_targets and v not in mechagodzilla_targets and v not in omega_targets and v not in reaper_targets and v not in phoenix_targets and v not in nidhogg_targets and v not in pandora_explosions and v not in chronos_targets and v not in paradox_targets and v not in time_anomalies and v not in leviathan_targets and v not in leviathan_supernovas]
     teleportation_targets = {}
     for wy, wx in wormholes:
         if available_voids:
@@ -597,7 +622,7 @@ def update_grid(grid):
             teleportation_targets[(target_y, target_x)] = teleported_state
 
     beam_targets = set()
-    blocking_states = {0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32}
+    blocking_states = {0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33}
     for ny, nx in neutron_stars_ortho:
         for dy, dx in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
             cy, cx = (ny + dy) % height, (nx + dx) % width
@@ -618,6 +643,18 @@ def update_grid(grid):
     # 5. MAIN CELLULAR AUTOMATON UPDATE PASS
     for y in range(height):
         for x in range(width):
+            # Resolve Leviathan Supernovas and Movement
+            if (y, x) in leviathan_supernovas:
+                new_grid[y][x] = 7
+                continue
+            if (y, x) in leviathan_targets:
+                new_grid[y][x] = 33
+                continue
+            if (y, x) in leviathans:
+                # Leviathan moved away, leaves void
+                new_grid[y][x] = 6
+                continue
+
             if (y, x) in chronos_cleansed:
                 new_grid[y][x] = chronos_cleansed[(y, x)]
                 continue
@@ -962,6 +999,11 @@ def update_grid(grid):
                                 break
                 continue
 
+            # --- STATE 33: LEVIATHAN ---
+            elif current_state == 33:
+                # Movement and interactions already fully resolved
+                continue
+
             # --- STATE 29: RADIOTROPH ---
             elif current_state == 29:
                 if random.random() < 0.05:
@@ -1180,7 +1222,7 @@ def generate_html(grid):
 <body>
     <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, Jaeger, Mothra, Glitch, MechaGodzilla, Omega, Nexus, Phoenix, Yggdrasil, Nidhogg, Pandora, Chronos & Paradox</h2>
     <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
-    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega | Light Cyan: Nexus | Dark Gray: Reaper | Coral: Phoenix | Forest Green: Yggdrasil | Dark Red: Nidhogg | Deep Pink: Pandora | Royal Blue: Chronos | Dark Violet: Paradox | Pure White: Singularity | Lavender: Neutron Star Ortho | Thistle: Neutron Star Diag | Chartreuse: Radiotroph | Dark Slate Gray: Black Monolith | Saddle Brown: Tardigrade</p>
+    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega | Light Cyan: Nexus | Dark Gray: Reaper | Coral: Phoenix | Forest Green: Yggdrasil | Dark Red: Nidhogg | Deep Pink: Pandora | Royal Blue: Chronos | Dark Violet: Paradox | Pure White: Singularity | Lavender: Neutron Star Ortho | Thistle: Neutron Star Diag | Chartreuse: Radiotroph | Dark Slate Gray: Black Monolith | Saddle Brown: Tardigrade | Dark Cyan: Leviathan</p>
 
     <script>
         const canvas = document.getElementById('simCanvas');
@@ -1220,7 +1262,8 @@ def generate_html(grid):
             29: '#7fff00', // Radiotroph
             30: '#2f4f4f', // Black Monolith
             31: '#8b4513', // Tardigrade
-            32: '#fffff0'  // White Hole
+            32: '#fffff0', // White Hole
+            33: '#008b8b'  // Leviathan
         }};
 
         const grid = {json.dumps(grid)};
