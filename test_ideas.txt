@@ -1,6 +1,2 @@
-State 22: Pandora.
-Pandora is a dormant state, represented by Deep Pink `#ff1493`.
-Pandora cells are placed on the board with a small chance (0.01%) when creating a new board, and they rarely spawn from the void (0.01% chance).
-Pandora sits completely still.
-If Pandora is touched by any Kaiju (Godzilla, Jaeger, Mothra, MechaGodzilla, Omega, Reaper, Phoenix, Nidhogg), it opens.
-When Pandora opens, it catastrophically alters the board. The cell it is on becomes a Wormhole, and in a 5x5 area around it, EVERY cell is turned into a randomized state with equal probabilities for all 22 states (including Kaiju, Yggdrasils, Glitches, Supernovas, etc.). This simulates unleashing absolute chaos upon the universe.
+1. Ahab (State 34): The Hunter of Leviathans. Ahab is spawned very rarely, hunts Leviathans down, and turns them into something else (maybe back into White Holes, or Supernovas?).
+2. Introduce some visual change in the HTML or add to the state.
