@@ -1,14 +1,20 @@
 from playwright.sync_api import sync_playwright
+import os
 
 def run_cuj(page):
     page.goto("file:///app/index.html")
-    page.wait_for_timeout(1000)
+    page.wait_for_timeout(500)
+
+    # Wait a bit to let the simulation update visually
+    page.wait_for_timeout(3000)
 
     # Take screenshot at the key moment
     page.screenshot(path="/home/jules/verification/screenshots/verification.png")
     page.wait_for_timeout(1000)  # Hold final state for the video
 
 if __name__ == "__main__":
+    os.makedirs("/home/jules/verification/videos", exist_ok=True)
+    os.makedirs("/home/jules/verification/screenshots", exist_ok=True)
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         context = browser.new_context(

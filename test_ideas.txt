@@ -1,2 +1,25 @@
-1. Ahab (State 34): The Hunter of Leviathans. Ahab is spawned very rarely, hunts Leviathans down, and turns them into something else (maybe back into White Holes, or Supernovas?).
-2. Introduce some visual change in the HTML or add to the state.
+Let's build out the Kraken logic.
+
+State 36: Kraken
+Color: #800080 (Purple) or #4B0082 (Indigo)
+
+Characteristics:
+- Spawns rarely (0.005%).
+- Blocks beams.
+- Hunts Moby Dick (State 35).
+- If it consumes Moby Dick, it splits into 2 Krakens (in adjacent void spaces).
+- If no Moby Dick to consume, it wanders randomly into adjacent Void spaces.
+- If it hasn't eaten recently, it has a 1% chance to decay into a Black Hole (State 5) each turn.
+
+Files to update:
+1. `simulation.py`:
+   - Add state 36 to `create_grid` `states` array and `weights` array.
+   - Add state 36 to `print_grid` `chars` dict.
+   - Add state 36 to `update_grid` pre-computation loop.
+   - Add state 36 to `blocking_states` for beams.
+   - Add the specific logic for State 36 in `update_grid` loop.
+   - Add the color mapping in `generate_html` for State 36.
+2. `agent_handover.md`:
+   - Append a new shift report describing The Kraken.
+
+Let's do this!
