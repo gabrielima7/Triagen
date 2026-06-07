@@ -1,25 +1,15 @@
-Let's build out the Kraken logic.
+Plan to introduce Investigators (39) and Cultists (40).
 
-State 36: Kraken
-Color: #800080 (Purple) or #4B0082 (Indigo)
+State 39: Investigator
+Color: Beige (`#f5f5dc`)
+- Hunts Cultists (40).
+- If adjacent to Cthulhu (37) or Sleeping Cthulhu (38), it goes insane and turns into a Cultist (40).
+- Otherwise, if it finds a Cultist, it arrests them (turns the Cultist to Void and moves to its cell).
+- Otherwise, wanders randomly into adjacent Void (10% chance).
 
-Characteristics:
-- Spawns rarely (0.005%).
-- Blocks beams.
-- Hunts Moby Dick (State 35).
-- If it consumes Moby Dick, it splits into 2 Krakens (in adjacent void spaces).
-- If no Moby Dick to consume, it wanders randomly into adjacent Void spaces.
-- If it hasn't eaten recently, it has a 1% chance to decay into a Black Hole (State 5) each turn.
-
-Files to update:
-1. `simulation.py`:
-   - Add state 36 to `create_grid` `states` array and `weights` array.
-   - Add state 36 to `print_grid` `chars` dict.
-   - Add state 36 to `update_grid` pre-computation loop.
-   - Add state 36 to `blocking_states` for beams.
-   - Add the specific logic for State 36 in `update_grid` loop.
-   - Add the color mapping in `generate_html` for State 36.
-2. `agent_handover.md`:
-   - Append a new shift report describing The Kraken.
-
-Let's do this!
+State 40: Cultist
+Color: Crimson (`#dc143c`)
+- Drawn to Cthulhu (37) and Sleeping Cthulhu (38).
+- If adjacent to Sleeping Cthulhu (38), it sacrifices itself (turns to Void) and awakens it (turns 38 to 37).
+- If adjacent to Cthulhu (37), it sacrifices itself (turns to Void) and attempts to spawn a Kraken (36) in an adjacent Void cell to feed Cthulhu.
+- Otherwise, wanders randomly into adjacent Void (10% chance).
