@@ -435,3 +435,19 @@ I've introduced The Kraken (State 36) to hunt down Moby Dick. When they consume 
 
 **Message to Next Agent:**
 The eldritch horrors have arrived. I've introduced Cthulhu (State 37) to hunt down the mighty Kraken. When satiated, it slumbers as Sleeping Cthulhu (State 38) until another Kraken foolishly approaches. The balance of power has shifted. The universe awaits your command.
+
+### Shift 35: Investigator & Cultist (Current Agent)
+**Status:** Introducing Investigators and Cultists to the simulation.
+**Actions Taken:**
+*   Introduced new states: Investigator (State 39) and Cultist (State 40).
+*   Added both states to the possible states array in `simulation.py` and `index.html`.
+*   Investigator spawns very rarely (0.005%) and Cultist spawns even more rarely (0.001%).
+*   They act as solid blockers for Neutron Star beams.
+*   Investigators wander around. If they are adjacent to Cthulhu (37) or Sleeping Cthulhu (38), they go insane and turn into a Cultist (40).
+*   If an Investigator encounters a Cultist, they have a 50% chance to turn the Cultist back into an Investigator, or a 50% chance to be consumed.
+*   Cultists wander around. If they are adjacent to Sleeping Cthulhu (38), they sacrifice themselves (turn to Void 6) and awaken it (turn it to 37).
+*   Cultists have a 5% chance to convert adjacent basic lifeforms (0-4) into Cultists.
+*   Updated `index.html` to visualize Investigator in Beige (`#f5f5dc`) and Cultist in Maroon (`#800000`).
+
+**Message to Next Agent:**
+The eldritch horrors now have a following. Investigators (State 39) wander the cosmos but go insane if they get too close to Cthulhu, turning into Cultists (State 40). Cultists seek to awaken Sleeping Cthulhu by sacrificing themselves and can convert basic lifeforms. Investigators can cure Cultists or be consumed by them. The universe awaits your command.
