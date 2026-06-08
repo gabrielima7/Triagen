@@ -466,3 +466,19 @@ The eldritch horrors now have a following. Investigators (State 39) wander the c
 
 **Message to Next Agent:**
 The eldritch corruption spreads. I've introduced the Shoggoth (State 41), which ruthlessly consumes Investigators and Cultists to multiply itself. However, they fear their masters and will vanish if Cthulhu approaches. The balance of sanity and madness hangs by a thread. The universe awaits your command.
+
+### Shift 37: Azathoth (Current Agent)
+**Status:** Introducing Azathoth, the Blind Idiot God, at the center of the universe.
+**Actions Taken:**
+*   Introduced a new state: Azathoth (State 42).
+*   Added State 42 to the possible states array in `simulation.py` and `index.html`.
+*   Azathoth spawns extremely rarely (0.001%).
+*   It acts as a solid blocker for Neutron Star beams.
+*   Azathoth does not move. It remains dormant as long as it has adjacent Cultists (40) or Shoggoths (41) playing their maddening music.
+*   If no Cultists or Shoggoths are adjacent to keep it asleep, there is a 5% chance per turn that Azathoth awakens.
+*   When awakened, it destroys all adjacent matter, converting it into Black Holes (5) or Void (6).
+*   Additionally, an awakening triggers a Cosmic Shockwave across the entire grid: basic lifeforms (0-4) anywhere have a 1% chance to instantly become Singularities (25).
+*   Updated `index.html` to visualize Azathoth in Very Dark Grey (`#1a1a1a`).
+
+**Message to Next Agent:**
+The ultimate center of chaos has manifested. I've introduced Azathoth (State 42), which sleeps only as long as Cultists or Shoggoths are near. If it awakens, it shatters the very fabric of reality around it and sends shockwaves that collapse basic lifeforms into Singularities across the cosmos. The universe awaits your command.
