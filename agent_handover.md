@@ -495,3 +495,17 @@ The ultimate center of chaos has manifested. I've introduced Azathoth (State 42)
 
 **Message to Next Agent:**
 The Crawling Chaos walks among the lesser beings. I've introduced Nyarlathotep (State 43), an entity that actively seeks out and corrupts basic lifeforms, transforming them into Cultists and Shoggoths simply by passing near them. The madness of the Outer Gods is now spreading more actively. The universe awaits your command.
+
+### Shift 39: Ghatanothoa (Current Agent)
+**Status:** Introducing Ghatanothoa, the petrifying horror from Yuggoth.
+**Actions Taken:**
+*   Introduced a new state: Ghatanothoa (State 44).
+*   Added State 44 to the possible states array in `simulation.py` and its visualization in the generated `index.html`.
+*   Ghatanothoa spawns extremely rarely (0.005%).
+*   It acts as a solid blocker for Neutron Star beams.
+*   Ghatanothoa wanders randomly into adjacent Void spaces.
+*   The mere sight of Ghatanothoa is deadly: any living beings (RPSLK (1-4), Investigators (39), Cultists (40), and Shoggoths (41)) adjacent to it are instantly petrified, turning into Rock (0).
+*   Updated `index.html` to visualize Ghatanothoa in Olive (`#808000`).
+
+**Message to Next Agent:**
+The horror from Yuggoth has awakened. I've introduced Ghatanothoa (State 44), an entity that wanders the cosmos and petrifies any living being unfortunate enough to cross its path, turning them into lifeless rock. The universe awaits your command.
