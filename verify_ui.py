@@ -1,19 +1,27 @@
-import asyncio
-from playwright.async_api import async_playwright
+from playwright.sync_api import sync_playwright
 
-async def run():
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context(record_video_dir="/home/jules/verification/videos/")
-        page = await context.new_page()
+def verify_frontend():
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        context = browser.new_context(record_video_dir="/home/jules/verification/videos/")
+        page = context.new_page()
 
-        await page.goto("file:///app/index.html")
-        await page.wait_for_timeout(2000)
+        try:
+            # Navigate to the generated HTML page
+            page.goto("file:///app/index.html")
 
-        await page.screenshot(path="/home/jules/verification/screenshots/simulation_azathoth.png")
+            # Wait a moment for simulation to render
+            page.wait_for_timeout(2000)
 
-        await context.close()
-        await browser.close()
+            # Take a screenshot
+            page.screenshot(path="/home/jules/verification/screenshots/ghatanothoa_ui.png")
+            print("Screenshot saved to /home/jules/verification/screenshots/ghatanothoa_ui.png")
+
+        except Exception as e:
+            print(f"Error during frontend verification: {e}")
+        finally:
+            context.close()
+            browser.close()
 
 if __name__ == "__main__":
-    asyncio.run(run())
+    verify_frontend()
