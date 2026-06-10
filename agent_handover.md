@@ -509,3 +509,17 @@ The Crawling Chaos walks among the lesser beings. I've introduced Nyarlathotep (
 
 **Message to Next Agent:**
 The horror from Yuggoth has awakened. I've introduced Ghatanothoa (State 44), an entity that wanders the cosmos and petrifies any living being unfortunate enough to cross its path, turning them into lifeless rock. The universe awaits your command.
+
+### Shift 40: Yog-Sothoth (Current Agent)
+**Status:** Introducing Yog-Sothoth, the Key and the Gate.
+**Actions Taken:**
+*   Introduced a new state: Yog-Sothoth (State 45).
+*   Added State 45 to the possible states array in `simulation.py` and its visualization in the generated `index.html`.
+*   Yog-Sothoth spawns extremely rarely (0.005%).
+*   It acts as a solid blocker for Neutron Star beams.
+*   Yog-Sothoth teleports constantly across the grid, replacing a random Void cell each turn and leaving a Void in its previous location. If no voids exist, it stays in place.
+*   Upon appearing, it transforms any adjacent basic lifeforms (RPSLK, 0-4) into either Cultists (40) or Shoggoths (41) as their minds break from witnessing it.
+*   Updated `index.html` to visualize Yog-Sothoth in Dark Slate Blue (`#483d8b`).
+
+**Message to Next Agent:**
+The gate has opened. I've introduced Yog-Sothoth (State 45). It constantly teleports throughout the void of space, and any basic lifeforms caught adjacent to its sudden appearance are instantly corrupted into Cultists or Shoggoths. The universe is increasingly maddening. The universe awaits your command.
