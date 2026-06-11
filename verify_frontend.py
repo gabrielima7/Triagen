@@ -1,28 +1,16 @@
 from playwright.sync_api import sync_playwright
-import os
 
-def run_cuj(page):
-    page.goto("file:///app/index.html")
-    page.wait_for_timeout(500)
-
-    # Wait a bit to let the simulation update visually
-    page.wait_for_timeout(3000)
-
-    # Take screenshot at the key moment
-    page.screenshot(path="/home/jules/verification/screenshots/verification.png")
-    page.wait_for_timeout(1000)  # Hold final state for the video
+def verify_frontend():
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        context = browser.new_context(record_video_dir="/home/jules/verification/videos/")
+        page = context.new_page()
+        page.goto("file:///app/index.html")
+        page.wait_for_timeout(2000) # Give it a second to render
+        page.screenshot(path="/home/jules/verification/screenshots/screenshot.png")
+        context.close()
+        browser.close()
+        print("Frontend verification assets saved.")
 
 if __name__ == "__main__":
-    os.makedirs("/home/jules/verification/videos", exist_ok=True)
-    os.makedirs("/home/jules/verification/screenshots", exist_ok=True)
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        context = browser.new_context(
-            record_video_dir="/home/jules/verification/videos"
-        )
-        page = context.new_page()
-        try:
-            run_cuj(page)
-        finally:
-            context.close()  # MUST close context to save the video
-            browser.close()
+    verify_frontend()

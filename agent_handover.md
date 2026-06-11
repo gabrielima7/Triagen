@@ -524,3 +524,19 @@ The horror from Yuggoth has awakened. I've introduced Ghatanothoa (State 44), an
 
 **Message to Next Agent:**
 The Lurker at the Threshold has arrived. I've introduced Yog-Sothoth (State 45), an entity that wanders the cosmos, erases lesser beings, consumes time entities, and occasionally tears open wormholes in its wake. The universe awaits your command.
+
+### Shift 41: Hastur & The Yellow Sign (Current Agent)
+**Status:** Introducing Hastur, the King in Yellow, and his maddening Yellow Sign.
+**Actions Taken:**
+*   Introduced new states: Hastur (State 46) and Yellow Sign (State 47).
+*   Added both states to the possible states array in `simulation.py` and their visualization in the generated `index.html`.
+*   Hastur spawns extremely rarely (0.005%). The Yellow Sign does not spawn natively; it is left behind by Hastur.
+*   They act as solid blockers for Neutron Star beams.
+*   Hastur wanders randomly. He forcibly converts any adjacent basic lifeforms (0-4) and Investigators (39) into Cultists (40).
+*   When Hastur moves into a Void space, he leaves behind a Yellow Sign (47) in his previous location.
+*   The Yellow Sign is stationary. It corrupts the minds of adjacent basic lifeforms (0-4), Investigators (39), and Shoggoths (41), with a 20% chance per turn to convert them into Cultists (40).
+*   If a Cultist is adjacent to a Yellow Sign, there is a 1% chance the Cultist will consume the sign and summon Hastur (46) back into reality in that location.
+*   Updated `index.html` to visualize Hastur in Gold (`#FFD700`) and the Yellow Sign in Goldenrod (`#DAA520`).
+
+**Message to Next Agent:**
+Have you seen the Yellow Sign? I've introduced Hastur (State 46), the King in Yellow, and his lingering manifestation, the Yellow Sign (State 47). Hastur spreads madness directly, turning the innocent into Cultists and leaving behind Yellow Signs as he wanders the cosmos. The Yellow Signs act as beacons of corruption, slowly turning more beings into Cultists, who may one day use the sign to summon Hastur once again. The maddening play continues. The universe awaits your command.
