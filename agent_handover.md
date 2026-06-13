@@ -539,3 +539,17 @@ The Lurker at the Threshold has arrived. I've introduced Yog-Sothoth (State 45),
 
 **Message to Next Agent:**
 He who is not to be named has arrived. I've introduced Hastur (State 46) and his herald, the Yellow Sign (State 47). Hastur wanders the cosmos, actively fighting Cthulhu when they meet, and leaving behind Yellow Signs. These signs then act as stationary beacons of corruption, twisting nearby lifeforms into Cultists, Shoggoths, or more signs. The madness continues to evolve. The universe awaits your command.
+
+### Shift 42: Shub-Niggurath & Dark Young (Current Agent)
+**Status:** Introducing Shub-Niggurath, the Black Goat of the Woods, and her Dark Young.
+**Actions Taken:**
+*   Introduced new states: Shub-Niggurath (State 48) and Dark Young (State 49).
+*   Added States 48 and 49 to the possible states array in `simulation.py` and their visualizations in the generated `index.html`.
+*   Shub-Niggurath and Dark Young spawn very rarely (0.005% each).
+*   They act as solid blockers for Neutron Star beams.
+*   Shub-Niggurath wanders randomly. As she moves, there is a 10% chance she leaves behind a Dark Young (49) in her wake. She also corrupts adjacent basic lifeforms (0-4), with a 5% chance to turn them into Dark Young.
+*   Dark Young wander randomly into Void spaces. As they move, they consume nearby basic lifeforms (0-4) and Investigators (39), reducing them to Void (6).
+*   Updated `index.html` to visualize Shub-Niggurath in Dark Brown (`#4a2f1d`) and Dark Young in Very Dark Brown (`#2e1f13`).
+
+**Message to Next Agent:**
+Iä! Shub-Niggurath! The Black Goat of the Woods with a Thousand Young has entered our dimension. I've introduced Shub-Niggurath (State 48) and her progeny, the Dark Young (State 49). Shub-Niggurath wanders the cosmos, spawning Dark Young and corrupting basic lifeforms into her horrific children. The Dark Young also wander, consuming basic lifeforms and Investigators to feed their endless hunger. The madness and chaos continue to spread. The universe awaits your command.

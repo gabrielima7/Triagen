@@ -1,0 +1,75 @@
+    html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="1">
+    <title>AI Collective: RPS-Spock-Lizard-Wormhole Simulation with Omega</title>
+    <style>
+        body {{ background-color: #111; color: #eee; font-family: monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; flex-direction: column; }}
+        canvas {{ background-color: #333; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7); border-radius: 4px; }}
+        h2 {{ margin-bottom: 5px; color: #ff00ff; text-shadow: 0 0 10px rgba(255, 0, 255, 0.4); }}
+        p {{ margin-top: 15px; font-size: 11px; color: #999; }}
+    </style>
+</head>
+<body>
+    <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, Jaeger, Mothra, Glitch, MechaGodzilla, Omega, Nexus, Phoenix, Yggdrasil, Nidhogg, Pandora, Chronos, Paradox, Investigator, Cultist, Shoggoth, Azathoth, Nyarlathotep & Ghatanothoa, Yog-Sothoth, Hastur & Yellow Sign</h2>
+    <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
+    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega | Light Cyan: Nexus | Dark Gray: Reaper | Coral: Phoenix | Forest Green: Yggdrasil | Dark Red: Nidhogg | Deep Pink: Pandora | Royal Blue: Chronos | Dark Violet: Paradox | Pure White: Singularity | Lavender: Neutron Star Ortho | Thistle: Neutron Star Diag | Chartreuse: Radiotroph | Dark Slate Gray: Black Monolith | Saddle Brown: Tardigrade | Ivory: White Hole | Deep Ocean Blue: Leviathan | Dark Cyan: Ahab | Indigo: Kraken | Dark Olive Green: Cthulhu | Dark Khaki: Sleeping Cthulhu | Beige: Investigator | Maroon: Cultist | Green Yellow: Shoggoth | Very Dark Grey: Azathoth | Dark Magenta: Nyarlathotep | Olive: Ghatanothoa | RebeccaPurple: Yog-Sothoth | Goldenrod: Hastur | Yellow: Yellow Sign</p>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const cellSize = 5;
+
+        const colors = {{
+            0: '#e74c3c', // Rock
+            1: '#2ecc71', // Paper
+            2: '#3498db', // Scissors
+            3: '#9b59b6', // Spock
+            4: '#f1c40f', // Lizard
+            5: '#000000', // Black Hole
+            6: '#7f8c8d', // Void
+            7: '#ffffff', // Supernova
+            8: '#00ffff', // Pulsar
+            9: '#ff00ff', // Wormhole
+            10: '#ff7f00', // Godzilla
+            11: '#bdc3c7', // Jaeger
+            12: '#ffd700', // Mothra
+            13: '#39ff14', // Glitch
+            14: '#00bfff', // Anti-Virus
+            15: '#e6005c', // MechaGodzilla
+            16: '#8a2be2', // Omega
+            17: '#e0ffff', // Nexus
+            18: '#555555', // Reaper
+            19: '#ff7f50', // Phoenix
+            20: '#228b22', // Yggdrasil
+            21: '#8b0000', // Nidhogg
+            22: '#ff1493', // Pandora
+            23: '#4169e1', // Chronos
+            24: '#9400d3', // Paradox
+            25: '#ffffff',  // Singularity
+            26: '#00ff00',  // Conway
+            27: '#e6e6fa', // Neutron Star Ortho
+            28: '#d8bfd8', // Neutron Star Diag
+            29: '#7fff00', // Radiotroph
+            30: '#2f4f4f', // Black Monolith
+            31: '#8b4513', // Tardigrade
+            32: '#fffff0', // White Hole
+            33: '#00008b', // Leviathan
+            34: '#008b8b', // Ahab
+            35: '#f8f8ff', // Moby Dick
+            36: '#4B0082', // Kraken
+            37: '#556b2f', // Cthulhu
+            38: '#bdb76b',  // Sleeping Cthulhu
+            39: '#f5f5dc', // Investigator
+            40: '#800000', // Cultist
+            41: '#adff2f', // Shoggoth
+            42: '#1a1a1a', // Azathoth
+            43: '#8b008b', // Nyarlathotep
+            44: '#808000', // Ghatanothoa
+            45: '#663399', // Yog-Sothoth
+            46: '#daa520', // Hastur
+            47: '#ffff00'  // Yellow Sign
+        }};
+
+        const grid = {json.dumps(grid)};
