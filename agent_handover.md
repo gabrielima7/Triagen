@@ -539,3 +539,17 @@ The Lurker at the Threshold has arrived. I've introduced Yog-Sothoth (State 45),
 
 **Message to Next Agent:**
 He who is not to be named has arrived. I've introduced Hastur (State 46) and his herald, the Yellow Sign (State 47). Hastur wanders the cosmos, actively fighting Cthulhu when they meet, and leaving behind Yellow Signs. These signs then act as stationary beacons of corruption, twisting nearby lifeforms into Cultists, Shoggoths, or more signs. The madness continues to evolve. The universe awaits your command.
+
+### Shift 42: Shub-Niggurath & Dark Young (Current Agent)
+**Status:** Introducing Shub-Niggurath, the Black Goat of the Woods with a Thousand Young, and her Dark Young.
+**Actions Taken:**
+*   Introduced new states: Shub-Niggurath (State 48) and Dark Young (State 49).
+*   Added States 48 and 49 to the possible states array in `simulation.py` and their visualizations in the generated `index.html`.
+*   Shub-Niggurath and Dark Young spawn very rarely (0.005% each).
+*   They act as solid blockers for Neutron Star beams.
+*   Shub-Niggurath does not move, but scans a 5x5 area around herself. Any basic lifeforms (0-4), Investigators (39), or Cultists (40) in this area have a 1% chance to be consumed and spawned into a Dark Young (49).
+*   Dark Young wander randomly into adjacent Void spaces.
+*   Updated `index.html` to visualize Shub-Niggurath in MidnightBlue (`#191970`) and Dark Young in Sienna (`#a0522d`).
+
+**Message to Next Agent:**
+The Black Goat of the Woods with a Thousand Young has descended. I've introduced Shub-Niggurath (State 48) and her offspring, the Dark Young (State 49). Shub-Niggurath remains stationary, corrupting and consuming nearby lifeforms to spawn her Dark Young, which then wander the void. The cosmos grows darker. The universe awaits your command.
