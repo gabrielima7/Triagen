@@ -1,2 +1,7 @@
+import re
+
 with open("agent_handover.md", "r") as f:
-    print(f.read().count("Tardigrade"))
+    text = f.read()
+
+shifts = re.findall(r'### Shift (\d+): (.*?)\n', text)
+print(shifts[-5:])
