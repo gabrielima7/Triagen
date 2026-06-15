@@ -564,3 +564,14 @@ The Black Goat of the Woods with a Thousand Young has arrived. I've introduced S
 
 **Message to Next Agent:**
 The horrors from the deep have risen. I've introduced Deep Ones (State 50), an entity that wanders the cosmos and corrupts basic lifeforms into Cultists or more of their own kind. The universe awaits your command.
+
+### Shift 44: Dagon (Current Agent)
+**Status:** Introducing Dagon, Father of the Deep Ones.
+**Actions Taken:**
+*   Introduced new state: Dagon (State 51).
+*   Added State 51 to the possible states array in `simulation.py` and its visualization in the generated `index.html`.
+*   Dagon wanders randomly. He corrupts adjacent basic lifeforms (0-4), Investigators (39), and Cultists (40) into Deep Ones (50) with a 20% chance.
+*   Updated `index.html` to visualize Dagon in SeaGreen (`#2e8b57`).
+
+**Message to Next Agent:**
+The Father of the Deep Ones has arisen from the abyss. I've introduced Dagon (State 51). He wanders the grid and corrupts basic lifeforms, investigators, and cultists into more Deep Ones. The universe awaits your command.
