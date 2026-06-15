@@ -10,9 +10,9 @@ def create_grid(width, height, randomize=False):
     """Creates a 2D grid, optionally filled with random states."""
     grid = []
     if randomize:
-        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49]
+        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50]
         # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.43%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%), Yggdrasil (0%), Nidhogg (0.01%), Pandora (0.01%), Chronos (0.01%), Paradox (0.01%), Singularity (0.0001%), Conway (0.0001%), Neutron Star Ortho (0.005%), Neutron Star Diag (0.005%), Radiotroph (0.005%), Black Monolith (0.005%), Tardigrade (0.005%), White Hole (0.005%), Leviathan (0.005%), Ahab (0.005%), Moby Dick (0.005%), Kraken (0.005%), Cthulhu (0.005%), Sleeping Cthulhu (0.005%), Investigator (0.005%), Cultist (0.001%), Shoggoth (0.005%), Azathoth (0.001%), Nyarlathotep (0.005%), Ghatanothoa (0.005%), Yog-Sothoth (0.005%), Hastur (0.005%), Yellow Sign (0.005%), Shub-Niggurath (0.005%), Dark Young (0.005%)
-        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.3949, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.0, 0.01, 0.01, 0.01, 0.01, 0.0001, 0.0001, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.001, 0.005, 0.001, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005]
+        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.3949, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.0, 0.01, 0.01, 0.01, 0.01, 0.0001, 0.0001, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.001, 0.005, 0.001, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005]
         for _ in range(height):
             row = random.choices(states, weights=weights, k=width)
             grid.append(row)
@@ -75,7 +75,7 @@ def save_state(grid):
 
 def print_grid(grid):
     """Prints the grid to the console."""
-    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@", 9: "W", 10: "G", 11: "J", 12: "M", 13: "X", 14: "A", 15: "Z", 16: "O", 17: "N", 18: "D", 20: "Y", 21: "H", 25: "I", 26: "C", 31: "T", 32: "E", 34: "U", 35: "Q", 36: "^", 44: "F", 45: "+", 46: "h", 47: "y", 48: "b", 49: "d"}
+    chars = {0: "R", 1: "P", 2: "S", 3: "K", 4: "L", 5: "B", 6: "V", 7: "*", 8: "@", 9: "W", 10: "G", 11: "J", 12: "M", 13: "X", 14: "A", 15: "Z", 16: "O", 17: "N", 18: "D", 20: "Y", 21: "H", 25: "I", 26: "C", 31: "T", 32: "E", 34: "U", 35: "Q", 36: "^", 44: "F", 45: "+", 46: "h", 47: "y", 48: "b", 49: "d", 50: "p"}
     for row in grid:
         print(" ".join(chars.get(cell, "?") for cell in row))
     print()
@@ -605,7 +605,7 @@ def update_grid(grid):
             teleportation_targets[(target_y, target_x)] = teleported_state
 
     beam_targets = set()
-    blocking_states = {0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49}
+    blocking_states = {0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50}
     for ny, nx in neutron_stars_ortho:
         for dy, dx in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
             cy, cx = (ny + dy) % height, (nx + dx) % width
@@ -1485,6 +1485,28 @@ def update_grid(grid):
                     if new_grid[cy][cx] in [0, 1, 2, 3, 4] and random.random() < 0.10:
                         new_grid[cy][cx] = 40
                 continue
+
+            # --- STATE 50: DEEP ONE ---
+            elif current_state == 50:
+                new_grid[y][x] = 6 # Default to move/leave Void
+                neighbors = [(y+dy, x+dx) for dy in [-1, 0, 1] for dx in [-1, 0, 1] if dy != 0 or dx != 0]
+                random.shuffle(neighbors)
+                moved = False
+                for ny, nx in neighbors:
+                    cy, cx = ny % height, nx % width
+                    if grid[cy][cx] == 6 and new_grid[cy][cx] == 6:
+                        new_grid[cy][cx] = 50
+                        moved = True
+                        break
+                if not moved:
+                    new_grid[y][x] = 50
+
+                for ny, nx in neighbors:
+                    cy, cx = ny % height, nx % width
+                    if new_grid[cy][cx] in [0, 1, 2, 3, 4, 39] and random.random() < 0.10:
+                        new_grid[cy][cx] = random.choice([40, 50])
+                continue
+
             # --- STATE 29: RADIOTROPH ---
             elif current_state == 29:
                 if random.random() < 0.05:
@@ -1763,7 +1785,8 @@ def generate_html(grid):
             46: '#daa520', // Hastur
             47: '#ffff00', // Yellow Sign
             48: '#008080', // Shub-Niggurath
-            49: '#a0522d'  // Dark Young
+            49: '#a0522d', // Dark Young
+            50: '#00ced1'  // Deep One
         }};
 
         const grid = {json.dumps(grid)};

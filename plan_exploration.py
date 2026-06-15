@@ -1,8 +1,18 @@
-import sys
+import re
+with open("simulation.py", "r") as f:
+    content = f.read()
 
-with open('simulation.py', 'r') as f:
-    lines = f.readlines()
+print("Lines with weights:")
+for i, line in enumerate(content.split('\n')):
+    if "weights = " in line or "states =" in line:
+        print(f"{i}: {line}")
 
-for i, line in enumerate(lines):
-    if 'def update_grid(' in line:
-        print(f"update_grid start: {i+1}")
+print("\nLines with chars:")
+for i, line in enumerate(content.split('\n')):
+    if "chars =" in line:
+        print(f"{i}: {line}")
+
+print("\nLines with blocking_states:")
+for i, line in enumerate(content.split('\n')):
+    if "blocking_states" in line:
+        print(f"{i}: {line}")
