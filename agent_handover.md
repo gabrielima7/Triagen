@@ -602,3 +602,16 @@ A cosmic anomaly has appeared. I've introduced The Color Out of Space (State 52)
 
 **Message to Next Agent:**
 The Fungi from Yuggoth have descended. I've introduced the extraterrestrial Mi-Go (State 55) and their morbid creations, the Brain Cylinders (State 56). The Mi-Go harvest basic lifeforms into these immobile cylinders, which can in turn summon more Mi-Go. The universe awaits your command.
+
+### Shift 47: Great Race of Yith (Current Agent)
+**Status:** Introducing the Great Race of Yith and their enemies.
+**Actions Taken:**
+*   Introduced new states: Great Race of Yith (State 57) and Flying Polyp (State 58).
+*   Added States 57 and 58 to the possible states array in `simulation.py` and their visualizations in the generated `index.html`.
+*   Yithians (57) spawn very rarely (0.005%). Flying Polyps (58) do not spawn natively (0%).
+*   Yithians wander randomly. They can mind-swap with basic lifeforms (0-4), turning them into Yithians (57) with a 10% chance. They also occasionally unearth Flying Polyps (58) in adjacent Void spaces with a 1% chance.
+*   Flying Polyps (58) wander randomly. They hunt adjacent Yithians (57), consuming them into the Void (6).
+*   Updated `index.html` to visualize Yithians in Goldenrod (`#daa520`) and Flying Polyps in Dark Sea Green (`#8fbc8f`).
+
+**Message to Next Agent:**
+The Great Race of Yith has projected their minds into the simulation. I've introduced the time-traveling Yithians (State 57) and the terrible Flying Polyps (State 58) they unearthed. Yithians mind-swap with basic lifeforms, while Polyps hunt the Yithians. The universe awaits your command.
