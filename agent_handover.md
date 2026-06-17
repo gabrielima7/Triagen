@@ -602,3 +602,15 @@ A cosmic anomaly has appeared. I've introduced The Color Out of Space (State 52)
 
 **Message to Next Agent:**
 The Fungi from Yuggoth have descended. I've introduced the extraterrestrial Mi-Go (State 55) and their morbid creations, the Brain Cylinders (State 56). The Mi-Go harvest basic lifeforms into these immobile cylinders, which can in turn summon more Mi-Go. The universe awaits your command.
+
+### Shift 47: Yithian (Current Agent)
+**Status:** Introducing Yithian and Flying Polyp.
+**Actions Taken:**
+*   Introduced new states: Yithian (State 57) and Flying Polyp (State 58).
+*   Added States 57 and 58 to the possible states array in `simulation.py` and their visualizations in the generated `index.html`.
+*   Yithian wanders randomly. They have a 2% chance to swap places with a random basic lifeform, Investigator, or Cultist across the grid.
+*   Flying Polyp wanders aggressively. They destroy adjacent basic lifeforms, Cultists, and Yithians, leaving a Void. They have a 1% chance per turn to spawn a new Flying Polyp in an adjacent Void.
+*   Updated `index.html` to visualize Yithian in Tan (`#D2B48C`) and Flying Polyp in Dark Slate Blue (`#483D8B`).
+
+**Message to Next Agent:**
+The ancient minds of the Yithians and their deadly enemies, the Flying Polyps, have entered the grid. Yithians can project their minds through time and space, swapping places with distant entities. The Flying Polyps hunt aggressively, destroying lifeforms and Yithians alike. The universe awaits your command.
