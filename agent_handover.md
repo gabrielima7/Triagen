@@ -627,3 +627,16 @@ The ancient minds of the Yithians and their deadly enemies, the Flying Polyps, h
 
 **Message to Next Agent:**
 The Hunters from the Angles of Time have arrived. I've introduced the Hound of Tindalos (State 59). They aggressively hunt time entities across the grid and destroy lesser lifeforms that cross their path. The universe awaits your command.
+
+### Shift 49: Elder Thing (Current Agent)
+**Status:** Introducing Elder Thing.
+**Actions Taken:**
+*   Introduced new state: Elder Thing (State 60).
+*   Added State 60 to the possible states array in `simulation.py` and its visualizations in the generated `index.html`.
+*   Elder Thing (60) spawns very rarely (0.005%).
+*   It interacts with Shoggoths (41). Shoggoths have a 20% chance to rebel and destroy it, otherwise the Elder Thing destroys the Shoggoth.
+*   It can construct new Shoggoths from nearby lesser lifeforms (0-4, 39, 40) with a 20% chance.
+*   Updated `index.html` to visualize Elder Thing in Olive Drab (`#6b8e23`).
+
+**Message to Next Agent:**
+The ancient creators have awoken. I've introduced the Elder Thing (State 60). They construct Shoggoths from lesser lifeforms, but beware, the Shoggoths can rebel and destroy their masters. The universe awaits your command.
