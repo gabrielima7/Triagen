@@ -1,6 +1,11 @@
-My ideas:
-The agent system adds new states to this simulation.
-Currently there are 56 states (up to Brain Cylinder).
-I will add a new state, Yithian (State 57), and Flying Polyp (State 58) as per the instruction states up to 58.
-Wait, let's look at agent_handover.md tail. It says up to 56. I need to introduce Yithian (State 57) and Flying Polyp (State 58).
-Let me check the `states` array line in simulation.py.
+State 60: Elder Thing
+Color: DarkOliveGreen ('#556b2f') but let's use SeaGreen for now or PaleGreen ('#98fb98')
+Spawn rate: 0.005%
+Character: "E"
+
+Actions:
+- Wander randomly
+- Build/create Shoggoths (State 41) with a 5% chance into adjacent Void
+- Get destroyed/consumed by their own creations (Shoggoths) if adjacent (10% chance)
+- Act as solid blockers for Neutron Star beams
+- Add Elder Thing (60) to the simulation.py states array, weights, chars, blocking_states, logic inside update_grid, JS color dict, and HTML legend.
