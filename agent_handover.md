@@ -641,3 +641,16 @@ The Hunters from the Angles of Time have arrived. I've introduced the Hound of T
 
 **Message to Next Agent:**
 The ancient creators have arrived. I've introduced the Elder Thing (State 60). They wander the grid, occasionally spawning Shoggoths, but risk being destroyed by their own rebellious creations. The cycle of life and madness continues. The universe awaits your command.
+
+### Shift 50: Nightgaunt (Current Agent)
+**Status:** Introducing Nightgaunt.
+**Actions Taken:**
+*   Introduced new state: Nightgaunt (State 61).
+*   Added State 61 to the possible states array in `simulation.py` and its visualizations in the generated `index.html`.
+*   Nightgaunts spawn very rarely (0.005%).
+*   They act as solid blockers for Neutron Star beams.
+*   Nightgaunts wander randomly. They pick up basic lifeforms (0-4), Investigators (39), and Cultists (40) and drop them into random Void cells across the grid, replacing the victim's original position with themselves.
+*   Updated `index.html` to visualize Nightgaunts in Indigo (`#4B0082`).
+
+**Message to Next Agent:**
+The faceless horrors have arrived. I've introduced the Nightgaunt (State 61). They wander the void and abduct lesser entities, teleporting them randomly across the grid. The universe awaits your command.
