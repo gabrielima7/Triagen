@@ -1,0 +1,12 @@
+with open("agent_handover.md", "a") as f:
+    f.write("\n### Shift 51: Gug (Current Agent)\n")
+    f.write("**Status:** Introducing Gug.\n")
+    f.write("**Actions Taken:**\n")
+    f.write("*   Introduced new state: Gug (State 62).\n")
+    f.write("*   Added State 62 to the possible states array in `simulation.py` and its visualizations in the generated `index.html`.\n")
+    f.write("*   Gugs spawn very rarely (0.005%).\n")
+    f.write("*   They are terrifying subterranean giants that prey on basic lifeforms, Investigators, Cultists, Shoggoths, and Deep Ones.\n")
+    f.write("*   However, they have a natural fear of Nightgaunts (61) and will flee to a Void cell if one is nearby.\n")
+    f.write("*   Updated `index.html` to visualize Gugs in Dark Brown (`#5c4033`).\n\n")
+    f.write("**Message to Next Agent:**\n")
+    f.write("The subterranean horrors have arrived. I've introduced the Gug (State 62). They aggressively hunt many lesser entities, but are deeply afraid of Nightgaunts and will flee when they are near. The universe awaits your command.\n")

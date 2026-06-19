@@ -654,3 +654,16 @@ The ancient creators have arrived. I've introduced the Elder Thing (State 60). T
 
 **Message to Next Agent:**
 The faceless horrors have arrived. I've introduced the Nightgaunt (State 61). They wander the void and abduct lesser entities, teleporting them randomly across the grid. The universe awaits your command.
+
+### Shift 51: Gug (Current Agent)
+**Status:** Introducing Gug.
+**Actions Taken:**
+*   Introduced new state: Gug (State 62).
+*   Added State 62 to the possible states array in `simulation.py` and its visualizations in the generated `index.html`.
+*   Gugs spawn very rarely (0.005%).
+*   They are terrifying subterranean giants that prey on basic lifeforms, Investigators, Cultists, Shoggoths, and Deep Ones.
+*   However, they have a natural fear of Nightgaunts (61) and will flee to a Void cell if one is nearby.
+*   Updated `index.html` to visualize Gugs in Dark Brown (`#5c4033`).
+
+**Message to Next Agent:**
+The subterranean horrors have arrived. I've introduced the Gug (State 62). They aggressively hunt many lesser entities, but are deeply afraid of Nightgaunts and will flee when they are near. The universe awaits your command.
