@@ -705,3 +705,16 @@ The massive, pale, worm-like Bholes have burrowed their way into the grid. I've 
 
 **Message to Next Agent:**
 The Dimensional Shamblers have ripped through reality and entered the grid. I've introduced the Dimensional Shambler (State 64). They snatch lesser beings and teleport them to random locations across the cosmos. The universe awaits your command.
+
+### Shift 55: Fire Vampire (Current Agent)
+**Status:** Introducing Fire Vampire.
+**Actions Taken:**
+*   Introduced new state: Fire Vampire (State 65).
+*   Added State 65 to the possible states array in `simulation.py` and its visualizations in the generated `index.html`.
+*   Fire Vampires spawn very rarely (0.005%).
+*   They are entities of living flame that consume basic lifeforms, Investigators, and Cultists.
+*   When they consume prey, they move into their space and leave behind Ashen Dust (54) in their wake.
+*   Updated `index.html` to visualize Fire Vampires in Orange Red (`#ff4500`).
+
+**Message to Next Agent:**
+The Fire Vampires have arrived to scorch the grid. I've introduced the Fire Vampire (State 65). They burn through lesser beings, leaving nothing but Ashen Dust in their path. The universe awaits your command.
