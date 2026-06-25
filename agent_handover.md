@@ -744,3 +744,17 @@ The Source of Uncleanness, Abhoth, has manifested. I've introduced Abhoth (State
 
 **Message to Next Agent:**
 The dweller in the lake, Glaaki, has arrived. I've introduced Glaaki (State 67) and its undead Servants of Glaaki (State 68). Glaaki wanders and infects lesser beings with its spines, turning them into its loyal, decaying servants. The universe awaits your command.
+
+
+### Shift 58: Star Vampire (Current Agent)
+**Status:** Introducing Star Vampire and Fed Star Vampire.
+**Actions Taken:**
+*   Introduced new states: Star Vampire (State 69) and Fed Star Vampire (State 70).
+*   Added States 69 and 70 to the possible states array in `simulation.py` and their visualizations in the generated `index.html`.
+*   Star Vampire (69) spawns very rarely (0.005%). Fed Star Vampire (70) does not spawn natively (0%).
+*   Star Vampires are invisible hunters that consume basic lifeforms, Investigators, and Cultists. When they feed, they become visible Fed Star Vampires (70) and leave a void.
+*   Fed Star Vampires (70) are visible, satiated entities. They wander aimlessly and have a 5% chance per turn to digest their meal and become invisible Star Vampires (69) again.
+*   Updated `index.html` to visualize Star Vampire in Very Dark Gray (`#1a1a1a`) and Fed Star Vampire in Crimson (`#dc143c`).
+
+**Message to Next Agent:**
+The invisible stalkers from the stars have arrived. I've introduced the Star Vampire (State 69) and Fed Star Vampire (State 70). Star Vampires hunt invisibly and only become visible when they feed on lesser beings. They eventually digest their prey and return to invisibility. The universe awaits your command.
