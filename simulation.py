@@ -10,9 +10,9 @@ def create_grid(width, height, randomize=False):
     """Creates a 2D grid, optionally filled with random states."""
     grid = []
     if randomize:
-        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71]
-        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.43%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%), Yggdrasil (0%), Nidhogg (0.01%), Pandora (0.01%), Chronos (0.01%), Paradox (0.01%), Singularity (0.0001%), Conway (0.0001%), Neutron Star Ortho (0.005%), Neutron Star Diag (0.005%), Radiotroph (0.005%), Black Monolith (0.005%), Tardigrade (0.005%), White Hole (0.005%), Leviathan (0.005%), Ahab (0.005%), Moby Dick (0.005%), Kraken (0.005%), Cthulhu (0.005%), Sleeping Cthulhu (0.005%), Investigator (0.005%), Cultist (0.001%), Shoggoth (0.005%), Azathoth (0.001%), Nyarlathotep (0.005%), Ghatanothoa (0.005%), Yog-Sothoth (0.005%), Hastur (0.005%), Yellow Sign (0.005%), Shub-Niggurath (0.005%), Dark Young (0.005%), Dagon (0.005%), Yithian (0.005%), Flying Polyp (0.005%), Hound of Tindalos (0.005%), Spider of Leng (0.005%)
-        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.3949, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.0, 0.01, 0.01, 0.01, 0.01, 0.0001, 0.0001, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.001, 0.005, 0.0, 0.005, 0.001, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.0, 0.0, 0.005, 0.0, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.001, 0.005, 0.0, 0.005]
+        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72]
+        # Weighted choice: RPSLK (80% total, 16% each), Black Hole (1%), Void (16.43%), Supernova (0.1%), Pulsar (0.5%), Wormhole (0.3%), Godzilla (1.1%), Jaeger (0.5%), Mothra (0.5%), Glitch (0.05%), Anti-Virus (0.05%), MechaGodzilla (0.05%), Omega (0.05%), Nexus (0.05%), Reaper (0.05%), Phoenix (0.05%), Yggdrasil (0%), Nidhogg (0.01%), Pandora (0.01%), Chronos (0.01%), Paradox (0.01%), Singularity (0.0001%), Conway (0.0001%), Neutron Star Ortho (0.005%), Neutron Star Diag (0.005%), Radiotroph (0.005%), Black Monolith (0.005%), Tardigrade (0.005%), White Hole (0.005%), Leviathan (0.005%), Ahab (0.005%), Moby Dick (0.005%), Kraken (0.005%), Cthulhu (0.005%), Sleeping Cthulhu (0.005%), Investigator (0.005%), Cultist (0.001%), Shoggoth (0.005%), Azathoth (0.001%), Nyarlathotep (0.005%), Ghatanothoa (0.005%), Yog-Sothoth (0.005%), Hastur (0.005%), Yellow Sign (0.005%), Shub-Niggurath (0.005%), Dark Young (0.005%), Dagon (0.005%), Yithian (0.005%), Flying Polyp (0.005%), Hound of Tindalos (0.005%), Spider of Leng (0.005%), Byakhee (0.005%)
+        weights = [16.0, 16.0, 16.0, 16.0, 16.0, 1.0, 16.3949, 0.1, 0.5, 0.3, 1.1, 0.5, 0.5, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.0, 0.01, 0.01, 0.01, 0.01, 0.0001, 0.0001, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.001, 0.005, 0.0, 0.005, 0.001, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.0, 0.0, 0.005, 0.0, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.001, 0.005, 0.0, 0.005, 0.005]
         for _ in range(height):
             row = random.choices(states, weights=weights, k=width)
             grid.append(row)
@@ -2240,7 +2240,7 @@ def update_grid(grid):
                 continue
 
 
-            # --- STATE 71: SPIDER OF LENG ---
+                        # --- STATE 71: SPIDER OF LENG ---
             elif current_state == 71:
                 new_grid[y][x] = 6 # Default to move/leave Void
                 neighbors = [(y+dy, x+dx) for dy in [-1, 0, 1] for dx in [-1, 0, 1] if dy != 0 or dx != 0]
@@ -2267,6 +2267,43 @@ def update_grid(grid):
 
                 if not moved:
                     new_grid[y][x] = 71 # Stay put
+                continue
+
+            # --- STATE 72: BYAKHEE ---
+            elif current_state == 72:
+                new_grid[y][x] = 6 # Default to move/leave Void
+                neighbors = [(y+dy, x+dx) for dy in [-1, 0, 1] for dx in [-1, 0, 1] if dy != 0 or dx != 0]
+                random.shuffle(neighbors)
+
+                moved = False
+
+                # Preys on basic lifeforms, Investigators, and Cultists
+                for ny, nx in neighbors:
+                    cy, cx = ny % height, nx % width
+                    if grid[cy][cx] in [0, 1, 2, 3, 4, 39, 40]:
+                        new_grid[cy][cx] = 72
+                        moved = True
+                        break
+
+                if not moved:
+                    # Flight: 5% chance to teleport to a random void tile
+                    if random.random() < 0.05:
+                        ty, tx = random.randint(0, height-1), random.randint(0, width-1)
+                        if grid[ty][tx] == 6 and new_grid[ty][tx] == 6:
+                            new_grid[ty][tx] = 72
+                            moved = True
+
+                if not moved:
+                    # Wander
+                    for ny, nx in neighbors:
+                        cy, cx = ny % height, nx % width
+                        if grid[cy][cx] == 6 and new_grid[cy][cx] == 6:
+                            new_grid[cy][cx] = 72
+                            moved = True
+                            break
+
+                if not moved:
+                    new_grid[y][x] = 72 # Stay put
                 continue
 
             else:
@@ -2300,9 +2337,9 @@ def generate_html(grid):
     </style>
 </head>
 <body>
-    <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, Jaeger, Mothra, Glitch, MechaGodzilla, Omega, Nexus, Phoenix, Yggdrasil, Nidhogg, Pandora, Chronos, Paradox, Investigator, Cultist, Shoggoth, Azathoth, Nyarlathotep & Ghatanothoa, Yog-Sothoth, Hastur & Yellow Sign, Shub-Niggurath & Dark Young, Mi-Go & Brain Cylinder, Hound of Tindalos, Elder Thing, Nightgaunt, Gug, Bhole, Dimensional Shambler, Abhoth, Glaaki, Spider of Leng</h2>
+    <h2>Rock-Paper-Scissors-Spock-Lizard with Wormhole Singularity, Godzilla, Jaeger, Mothra, Glitch, MechaGodzilla, Omega, Nexus, Phoenix, Yggdrasil, Nidhogg, Pandora, Chronos, Paradox, Investigator, Cultist, Shoggoth, Azathoth, Nyarlathotep & Ghatanothoa, Yog-Sothoth, Hastur & Yellow Sign, Shub-Niggurath & Dark Young, Mi-Go & Brain Cylinder, Hound of Tindalos, Elder Thing, Nightgaunt, Gug, Bhole, Dimensional Shambler, Abhoth, Glaaki, Spider of Leng, Byakhee</h2>
     <canvas id="simCanvas" width="{width * 5}" height="{height * 5}"></canvas>
-    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega | Light Cyan: Nexus | Dark Gray: Reaper | Coral: Phoenix | Forest Green: Yggdrasil | Dark Red: Nidhogg | Deep Pink: Pandora | Royal Blue: Chronos | Dark Violet: Paradox | Pure White: Singularity | Lavender: Neutron Star Ortho | Thistle: Neutron Star Diag | Chartreuse: Radiotroph | Dark Slate Gray: Black Monolith | Saddle Brown: Tardigrade | Ivory: White Hole | Deep Ocean Blue: Leviathan | Dark Cyan: Ahab | Indigo: Kraken | Dark Olive Green: Cthulhu | Dark Khaki: Sleeping Cthulhu | Beige: Investigator | Maroon: Cultist | Green Yellow: Shoggoth | Very Dark Grey: Azathoth | Dark Magenta: Nyarlathotep | Olive: Ghatanothoa | RebeccaPurple: Yog-Sothoth | Goldenrod: Hastur | Yellow: Yellow Sign | Teal: Shub-Niggurath | Sienna: Dark Young | Fuchsia: The Color Out of Space | Dark Slate Gray: Blighted Soil | Light Gray: Ashen Dust | Light Pink: Mi-Go | Slate Gray: Brain Cylinder | Tan: Yithian | Dark Slate Blue: Flying Polyp | Midnight Blue: Hound of Tindalos | SeaGreen: Elder Thing | Indigo: Nightgaunt | Dark Brown: Gug | Chocolate: Bhole | Dark Olive Green: Dimensional Shambler | Orange Red: Fire Vampire | Brown: Abhoth | Dark Teal: Glaaki | Dark Sea Green: Servant of Glaaki | Very Dark Gray: Star Vampire | Crimson: Fed Star Vampire | Purple: Spider of Leng</p>
+    <p>Red: Rock | Green: Paper | Blue: Scissors | Purple: Spock | Yellow: Lizard | Black: Black Hole | Gray: Void | White: Supernova | Cyan: Pulsar | Magenta: Wormhole | Orange: Godzilla | Silver: Jaeger | Gold: Mothra | Neon Green: Glitch | Deep Sky Blue: Anti-Virus | Crimson Red: MechaGodzilla | Blue Violet: Omega | Light Cyan: Nexus | Dark Gray: Reaper | Coral: Phoenix | Forest Green: Yggdrasil | Dark Red: Nidhogg | Deep Pink: Pandora | Royal Blue: Chronos | Dark Violet: Paradox | Pure White: Singularity | Lavender: Neutron Star Ortho | Thistle: Neutron Star Diag | Chartreuse: Radiotroph | Dark Slate Gray: Black Monolith | Saddle Brown: Tardigrade | Ivory: White Hole | Deep Ocean Blue: Leviathan | Dark Cyan: Ahab | Indigo: Kraken | Dark Olive Green: Cthulhu | Dark Khaki: Sleeping Cthulhu | Beige: Investigator | Maroon: Cultist | Green Yellow: Shoggoth | Very Dark Grey: Azathoth | Dark Magenta: Nyarlathotep | Olive: Ghatanothoa | RebeccaPurple: Yog-Sothoth | Goldenrod: Hastur | Yellow: Yellow Sign | Teal: Shub-Niggurath | Sienna: Dark Young | Fuchsia: The Color Out of Space | Dark Slate Gray: Blighted Soil | Light Gray: Ashen Dust | Light Pink: Mi-Go | Slate Gray: Brain Cylinder | Tan: Yithian | Dark Slate Blue: Flying Polyp | Midnight Blue: Hound of Tindalos | SeaGreen: Elder Thing | Indigo: Nightgaunt | Dark Brown: Gug | Chocolate: Bhole | Dark Olive Green: Dimensional Shambler | Orange Red: Fire Vampire | Brown: Abhoth | Dark Teal: Glaaki | Dark Sea Green: Servant of Glaaki | Very Dark Gray: Star Vampire | Crimson: Fed Star Vampire | Purple: Spider of Leng | Peru: Byakhee</p>
 
     <script>
         const canvas = document.getElementById('simCanvas');
@@ -2381,7 +2418,8 @@ def generate_html(grid):
             68: '#8fbc8f' // Servant of Glaaki,
             69: '#1a1a1a', // Star Vampire
             70: '#dc143c' // Fed Star Vampire,
-            71: '#800080' // Spider of Leng
+            71: '#800080' // Spider of Leng,
+            72: '#cd853f' // Byakhee
         }};
 
         const grid = {json.dumps(grid)};
