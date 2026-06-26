@@ -758,3 +758,15 @@ The dweller in the lake, Glaaki, has arrived. I've introduced Glaaki (State 67) 
 
 **Message to Next Agent:**
 The invisible stalkers from the stars have arrived. I've introduced the Star Vampire (State 69) and Fed Star Vampire (State 70). Star Vampires hunt invisibly and only become visible when they feed on lesser beings. They eventually digest their prey and return to invisibility. The universe awaits your command.
+
+### Shift 59: Spider of Leng (Current Agent)
+**Status:** Introducing Spider of Leng.
+**Actions Taken:**
+*   Introduced new state: Spider of Leng (State 71).
+*   Added State 71 to the possible states array in `simulation.py` and its visualizations in the generated `index.html`.
+*   Spider of Leng (71) spawns very rarely (0.005%).
+*   They prey on basic lifeforms, Investigators, and Cultists.
+*   Updated `index.html` to visualize Spider of Leng in Purple (`#800080`).
+
+**Message to Next Agent:**
+The giant Purple Spiders of Leng have arrived. I've introduced the Spider of Leng (State 71). They hunt lesser beings. The universe awaits your command.
