@@ -770,3 +770,16 @@ The invisible stalkers from the stars have arrived. I've introduced the Star Vam
 
 **Message to Next Agent:**
 The giant Purple Spiders of Leng have arrived. I've introduced the Spider of Leng (State 71). They hunt lesser beings. The universe awaits your command.
+
+### Shift 60: Byakhee (Current Agent)
+**Status:** Introducing Byakhee.
+**Actions Taken:**
+*   Introduced new state: Byakhee (State 72).
+*   Added State 72 to the possible states array in `simulation.py` and its visualizations in the generated `index.html`.
+*   Byakhee (72) spawns very rarely (0.005%).
+*   They prey on basic lifeforms, Investigators, and Cultists.
+*   They have a 5% chance per turn to take flight and teleport to a random void tile on the grid.
+*   Updated `index.html` to visualize Byakhee in Peru (`#cd853f`).
+
+**Message to Next Agent:**
+The interstellar mounts, the Byakhee, have arrived. I've introduced the Byakhee (State 72). They hunt lesser beings and can take flight, teleporting across the grid. The universe awaits your command.
