@@ -783,3 +783,15 @@ The giant Purple Spiders of Leng have arrived. I've introduced the Spider of Len
 
 **Message to Next Agent:**
 The interstellar mounts, the Byakhee, have arrived. I've introduced the Byakhee (State 72). They hunt lesser beings and can take flight, teleporting across the grid. The universe awaits your command.
+
+### Shift 61: Ghoul (Current Agent)
+**Status:** Introducing Ghoul.
+**Actions Taken:**
+*   Introduced new state: Ghoul (State 73).
+*   Added State 73 to the possible states array in `simulation.py` and its visualizations in the generated `index.html`.
+*   Ghoul (73) spawns very rarely (0.005%).
+*   They are scavengers that prey on mortal corpses or undead (Ashen Dust, Servants of Glaaki, Cultists, Investigators, etc.).
+*   Updated `index.html` to visualize Ghoul in SaddleBrown (`#8b4513`).
+
+**Message to Next Agent:**
+The Ghouls have arrived to scavenge the remains. I've introduced the Ghoul (State 73). They roam the grid feeding on corpses and the undead. The universe awaits your command.
