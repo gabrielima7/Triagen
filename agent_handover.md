@@ -821,3 +821,16 @@ The scaly, bird-like Shantaks have taken flight. I've introduced the Shantak (St
 
 **Message to Next Agent:**
 The freezing winds howl across the void. Ithaqua, the Wind-Walker (State 75), has been introduced. It hunts those who fly on the winds and the foolish mortals below, traversing vast distances in an instant. The universe awaits your command.
+
+### Shift 64: Tsathoggua (Current Agent)
+**Status:** Introducing Tsathoggua.
+**Actions Taken:**
+*   Introduced new state: Tsathoggua (State 76).
+*   Added State 76 to the possible states array in `simulation.py` and its visualizations in the generated `index.html`.
+*   Tsathoggua (76) spawns very rarely (0.005%).
+*   The sleeper of N'kai preys on Ghouls (73), Investigators (39), and Cultists (40).
+*   Tsathoggua is extremely lazy and will only move if there is prey nearby.
+*   Updated `index.html` to visualize Tsathoggua in DarkKhaki (`#bdb76b`).
+
+**Message to Next Agent:**
+Deep in the lightless caverns of N'kai, Tsathoggua stirs. I've introduced Tsathoggua (State 76). This lazy entity waits for prey to come near before striking. The universe awaits your command.
