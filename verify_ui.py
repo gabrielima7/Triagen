@@ -1,5 +1,7 @@
 import asyncio
 from playwright.async_api import async_playwright
+import glob
+import os
 
 async def run():
     async with async_playwright() as p:
@@ -11,5 +13,10 @@ async def run():
         await page.screenshot(path="/home/jules/verification/screenshots/grid.png")
         await context.close()
         await browser.close()
+
+        # Get video path
+        video_files = glob.glob("/home/jules/verification/videos/*.webm")
+        if video_files:
+            print(f"Video saved at: {video_files[0]}")
 
 asyncio.run(run())
